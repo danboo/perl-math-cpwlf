@@ -55,6 +55,7 @@ sub knot
   my ($self, $key, $val) = @_;
   $self->{'_data'}{$key} = $val;
   delete $self->{'_keys'};
+  return $self;
   }
 
 sub _value
@@ -66,8 +67,13 @@ sub _value
      $self->_order_keys;
      }
      
+  if ( ! @{ $self->{'_keys'} } )
+     {
+     return;
+     }
+     
   my ( $x_dn_i, $x_up_i ) = _find_neighbors( $self->{'_keys'}, $key );
-
+  
   my $x_dn = $self->{'_keys'}[ $x_dn_i ];
   my $x_up = $self->{'_keys'}[ $x_up_i ];
 
@@ -94,6 +100,11 @@ sub _value
 sub _mx_plus_b
   {
   my ( $x, $x_dn, $x_up, $y_dn, $y_up ) = @_;
+  
+  if ( $y_dn == $y_up )
+     {
+     return $y_dn;
+     }
 
   my $slope     = ( $y_up - $y_dn ) / ( $x_up - $x_dn );
   my $intercept = $y_up - ( $slope * $x_up );
