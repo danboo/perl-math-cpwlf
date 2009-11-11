@@ -164,16 +164,19 @@ sub _find_neighbors
    my $bottom_max = int( $array_size / 2 ); #  1
    my $top_min    = $bottom_max + 1;        #  2
    my $top_max    = $max_index;             #  2
-   
+
+   ## value is between the split point   
    if ( $value > $array->[$bottom_max] && $value < $array->[$top_min] )
       {
-      return( $array->[$bottom_max], $value < $array->[$top_min] );
+      return( $array->[$bottom_max], $array->[$top_min] );
       }
-      
+
+   ## value is inside the lower half      
    if ( $value < $array->[$top_min] )
       {
       @_ = ( $array, $value, $bottom_min, $bottom_max );
       }
+   ## value is inside the upper half
    else
       {
       @_ = ( $array, $value, $top_min, $top_max );
