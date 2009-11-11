@@ -65,9 +65,11 @@ sub _value
      {
      $self->_order_keys;
      }
+     
+  my ( $x_dn_i, $x_up_i ) = _find_neighbors( $self->{'_keys'}, $key );
 
-  my $x_dn = 0;
-  my $x_up = 2;
+  my $x_dn = $self->{'_keys'}[ $x_dn_i ];
+  my $x_up = $self->{'_keys'}[ $x_up_i ];
 
   my $lower = $self->{'_data'}{$x_dn};
   my $upper = $self->{'_data'}{$x_up};
