@@ -20,6 +20,13 @@ my @tests =
    [ 'two - right out of bounds', [ 2, 2 ],         [ 1,2 ], 3,   undef, undef ],
    [ 'two - between',             [ 1, 2 ],         [ 1,2 ], 1.5, undef, undef ],
 
+   [ 'three - left direct',         [ 1, 1 ],         [ 1,2,3 ], 1,   undef, undef ],
+   [ 'three - middle direct',       [ 2, 2 ],         [ 1,2,3 ], 2,   undef, undef ],
+   [ 'three - right direct',        [ 3, 3 ],         [ 1,2,3 ], 3,   undef, undef ],
+   [ 'three - left out of bounds',  [ 1, 1 ],         [ 1,2,3 ], 0,   undef, undef ],
+   [ 'three - right out of bounds', [ 3, 3 ],         [ 1,2,3 ], 4,   undef, undef ],
+   [ 'three - between',             [ 2, 3 ],         [ 1,2,3 ], 2.5, undef, undef ],
+
    );
    
 for my $t ( @tests )
