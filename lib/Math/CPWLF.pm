@@ -125,38 +125,38 @@ sub _find_neighbors
    ## single knot functions  
    if ( $array_size == 1 )
       {
-      return( $array->[0], $array->[0] );
+      return( 0, 0 );
       }
 
    ## direct hit on min
    if ( $value == $array->[$min_index] )
       {
-      return( $array->[$min_index], $array->[$min_index] );
+      return( $min_index, $min_index );
       }
 
    ## direct hit on max
    if ( $value == $array->[$max_index] )
       {
-      return( $array->[$max_index], $array->[$max_index] );
+      return( $max_index, $max_index );
       }
 
    ## left-wise out of bounds      
    if ( $value < $array->[$min_index] )
       {
-      return( $array->[$min_index], $array->[$min_index] );
+      return( $min_index, $min_index );
       }
 
    ## right-wise out of bounds      
    if ( $value > $array->[$max_index] )
       {
-      return( $array->[$max_index], $array->[$max_index] );
+      return( $max_index, $max_index );
       }
    
    ## no direct hits and not out of bounds, so must
    ## be between min and max
    if ( $array_size == 2 )
       {
-      return( $array->[$min_index], $array->[$max_index] );
+      return( $min_index, $max_index );
       }
    
    ##                                   size:  3
@@ -168,7 +168,7 @@ sub _find_neighbors
    ## value is between the split point   
    if ( $value > $array->[$bottom_max] && $value < $array->[$top_min] )
       {
-      return( $array->[$bottom_max], $array->[$top_min] );
+      return( $bottom_max, $top_min );
       }
 
    ## value is inside the lower half      
