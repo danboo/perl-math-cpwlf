@@ -1,0 +1,17 @@
+use strict;
+use warnings;
+use Module::Build;
+
+my $builder = Module::Build->new(
+    module_name         => 'Math::CPWLF',
+    license             => 'perl',
+    dist_author         => q{Dan Boorstein <dan@boorstein.net>},
+    dist_version_from   => 'lib/Math/CPWLF.pm',
+    build_requires => {
+        'Test::More' => 0,
+    },
+    add_to_cleanup      => [ 'Math-CPWLF-*' ],
+    create_makefile_pl => 'traditional',
+);
+
+$builder->create_build_script();
