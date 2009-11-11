@@ -3,9 +3,12 @@ package Math::CPWLF;
 use warnings;
 use strict;
 
+use Contextual::Return;
+
 =head1 NAME
 
-Math::CPWLF - The great new Math::CPWLF!
+Math::CPWLF - Multidimensional interpolation using continuous piece-wise linear
+              functions
 
 =head1 VERSION
 
@@ -29,24 +32,170 @@ Perhaps a little code snippet.
 
 =head1 EXPORT
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+None
 
 =head1 FUNCTIONS
 
-=head2 function1
+=head2 new
 
 =cut
 
-sub function1 {
-}
-
-=head2 function2
+sub new
+  {
+  my $self  = bless {}, shift();
+  return CODEREF { sub { $self->_value(@_) } } DEFAULT { $self };
+  }
+  
+=head2 knot
 
 =cut
 
-sub function2 {
-}
+sub knot
+  {
+  my ($self, $key, $val) = @_;
+  $self->{'_data'}{$key} = $val;
+  delete $self->{'_keys'};
+  }
+
+sub _value
+  {
+  my ($self, $key) = @_;
+  
+  if ( ! exists $self->{'_keys'} )
+     {
+     $self->_order_keys;
+     }
+
+  my $x_dn = 0;
+  my $x_up = 2;
+
+  my $lower = $self->{'_data'}{$x_dn};
+  my $upper = $self->{'_data'}{$x_up};
+
+  my $interp = sub
+        {
+        my $k = shift();
+
+        $lower = ref $lower ? $lower->_value($k) : $lower;
+        $upper = ref $upper ? $upper->_value($k) : $upper;
+
+        return _mx_plus_b( $key, $x_dn, $x_up, $lower, $upper );
+        };
+        
+  my $recurse = ref $lower || ref $upper;
+
+  return $recurse
+       ? $interp
+       : $interp->($key);
+  }
+
+sub _mx_plus_b
+  {
+  my ( $x, $x_dn, $x_up, $y_dn, $y_up ) = @_;
+
+  my $slope     = ( $y_up - $y_dn ) / ( $x_up - $x_dn );
+  my $intercept = $y_up - ( $slope * $x_up );
+  my $y = $slope * $x + $intercept;
+
+  return $y;
+  }
+  
+sub _find_neighbors
+   {
+   my ( $array, $value, $min_index, $max_index ) = @_;
+   
+   if ( ! defined $min_index )
+      {
+      $min_index = 0;
+      }
+
+   if ( ! defined $max_index )
+      {
+      $max_index = $#{ $array };
+      }
+      
+   if ( ! defined $min_index )
+      {
+      $min_index = 0;
+      }
+      
+   my $array_size = $max_index - $min_index + 1;
+
+   ## empty arrays return all undefs
+   if ( $array_size < 1 )
+      {
+      return( undef, undef );
+      }
+
+   ## single knot functions  
+   if ( $array_size == 1 )
+      {
+      return( $array->[0], $array->[0] );
+      }
+
+   ## direct hit on min
+   if ( $value == $array->[$min_index] )
+      {
+      return( $array->[$min_index], $array->[$min_index] );
+      }
+
+   ## direct hit on max
+   if ( $value == $array->[$max_index] )
+      {
+      return( $array->[$max_index], $array->[$max_index] );
+      }
+
+   ## left-wise out of bounds      
+   if ( $value < $array->[$min_index] )
+      {
+      return( $array->[$min_index], $array->[$min_index] );
+      }
+
+   ## right-wise out of bounds      
+   if ( $value > $array->[$max_index] )
+      {
+      return( $array->[$max_index], $array->[$max_index] );
+      }
+   
+   ## no direct hits and not out of bounds, so must
+   ## be between min and max
+   if ( $array_size == 2 )
+      {
+      return( $array->[$min_index], $array->[$max_index] );
+      
+      }
+   
+   ##                                   size:  3
+   my $bottom_min = $min_index;             #  0 
+   my $bottom_max = int( $array_size / 2 ); #  1
+   my $top_min    = $bottom_max + 1;        #  2
+   my $top_max    = $max_index;             #  2
+   
+   if ( $value > $array->[$bottom_max] && $value < $array->[$top_min] )
+      {
+      return( $array->[$bottom_max], $value < $array->[$top_min] );
+      }
+      
+   if ( $value < $array->[$top_min] )
+      {
+      @_ = ( $array, $value, $bottom_min, $bottom_max );
+      }
+   else
+      {
+      @_ = ( $array, $value, $top_min, $top_max );
+      }
+
+   goto &_find_neighbors;
+   }
+   
+sub _order_keys
+   {
+   my ( $self ) = @_;
+   
+   my @ordered_keys = sort { $a <=> $b } keys %{ $self->{'_data'} };
+   
+   $self->{'_keys'} = \@ordered_keys;
+   }  
 
 =head1 AUTHOR
 
@@ -57,9 +206,6 @@ Dan Boorstein, C<< <dan at boorstein.net> >>
 Please report any bugs or feature requests to C<bug-math-cpwlf at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Math-CPWLF>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
-
-
-
 
 =head1 SUPPORT
 
