@@ -114,11 +114,6 @@ sub _find_neighbors
       $max_index = $#{ $array };
       }
       
-   if ( ! defined $min_index )
-      {
-      $min_index = 0;
-      }
-      
    my $array_size = $max_index - $min_index + 1;
 
    ## empty arrays return all undefs
@@ -162,7 +157,6 @@ sub _find_neighbors
    if ( $array_size == 2 )
       {
       return( $array->[$min_index], $array->[$max_index] );
-      
       }
    
    ##                                   size:  3

@@ -25,7 +25,8 @@ my @tests =
    [ 'three - right direct',        [ 3, 3 ],         [ 1,2,3 ], 3,   undef, undef ],
    [ 'three - left out of bounds',  [ 1, 1 ],         [ 1,2,3 ], 0,   undef, undef ],
    [ 'three - right out of bounds', [ 3, 3 ],         [ 1,2,3 ], 4,   undef, undef ],
-   [ 'three - between',             [ 2, 3 ],         [ 1,2,3 ], 2.5, undef, undef ],
+   [ 'three - between bottom',      [ 1, 2 ],         [ 1,2,3 ], 1.5, undef, undef ],
+   [ 'three - between top',         [ 2, 3 ],         [ 1,2,3 ], 2.5, undef, undef ],
 
    );
    
