@@ -19,9 +19,11 @@ my $fx = Math::CPWLF->new;
 
 $fx->knot( 0 => $fy0 );
 $fx->knot( 2 => $fy2 );
+$fx->knot( 4 => 100 );
 
 is( $fx->(0)(10), 30, 'hit, hit' );
 is( $fx->(0)(15), 40, 'hit, interpolate' );
 is( $fx->(1)(20), 60, 'interpolate, hit' );
 is( $fx->(1)(15), 45, 'interpolate, interpolate' );
+is( $fx->(3)(15), 75, 'interpolate, interpolate - 1.5 dimensions' );
 
