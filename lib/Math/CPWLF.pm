@@ -3,7 +3,9 @@ package Math::CPWLF;
 use warnings;
 use strict;
 
-use Contextual::Return;
+use overload
+   '&{}'    => sub { my $self = $_[0]; return sub { return $self->_value(@_) } },
+   fallback => 1;
 
 =head1 NAME
 
@@ -43,7 +45,8 @@ None
 sub new
   {
   my $self  = bless {}, shift();
-  return CODEREF { sub { $self->_value(@_) } } DEFAULT { $self };
+  return $self;
+  #return CODEREF { sub { $self->_value(@_) } } DEFAULT { $self };
   }
   
 =head2 knot
