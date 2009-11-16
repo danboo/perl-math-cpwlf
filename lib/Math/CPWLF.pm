@@ -83,15 +83,7 @@ sub _value
   my $lower = $self->{'_data'}{$x_dn};
   my $upper = $self->{'_data'}{$x_up};
 
-  my $interp = sub
-        {
-        my $k = shift();
-
-        $lower = ref $lower ? $lower->_value($k) : $lower;
-        $upper = ref $upper ? $upper->_value($k) : $upper;
-
-        return _mx_plus_b( $key, $x_dn, $x_up, $lower, $upper );
-        };
+  my $interp = _generate_interp_closure( $lower, $upper, $key, $x_dn, $x_up );
         
   my $recurse = ref $lower || ref $upper;
 
@@ -99,6 +91,23 @@ sub _value
        ? $interp
        : $interp->($key);
   }
+  
+sub _generate_interp_closure
+   {
+   my ( $lower, $upper, $key, $x_dn, $x_up ) = @_;
+
+   my $interp = sub
+      {
+      my $k = shift();
+
+      $lower = ref $lower ? $lower->_value($k) : $lower;
+      $upper = ref $upper ? $upper->_value($k) : $upper;
+
+      return _mx_plus_b( $key, $x_dn, $x_up, $lower, $upper );
+      };
+
+   return $interp;
+   } 
 
 sub _mx_plus_b
   {
