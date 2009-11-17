@@ -4,7 +4,7 @@ use warnings;
 use strict;
 
 use overload
-   '&{}'    => sub { my $self = $_[0]; return sub { return $self->_value(@_) } },
+   '&{}'    => sub { my $self = $_[0]; return _interp_closure( $self ) },
    fallback => 1;
 
 =head1 NAME
@@ -46,7 +46,6 @@ sub new
   {
   my $self  = bless {}, shift();
   return $self;
-  #return CODEREF { sub { $self->_value(@_) } } DEFAULT { $self };
   }
   
 =head2 knot
@@ -60,6 +59,63 @@ sub knot
   delete $self->{'_keys'};
   return $self;
   }
+  
+sub _interp_closure
+   {
+   my ( @cpwlfs ) = @_;
+   
+   my $interp;
+   
+   $interp = sub
+      {
+      my ($k) = @_;
+      
+      print STDERR "$k @cpwlfs\n";
+      
+      ## for each closured cpwlf
+      ##   get the two neighbor x,y pairs
+      ## if any y is a cpwlf
+      ##   return a new closure around all x,y pairs and stack the original cpwlfs
+      ## else work back through the stacks of x,y pairs and keys
+      
+      my @pairs;
+      
+      for my $cpwlf ( @cpwlfs )
+         {
+         my ($x_dn, $x_up, $y_dn, $y_up) = $cpwlf->_value2($k);
+         push @pairs, [ [$x_dn, $y_dn], [$x_up, $y_up] ];
+         }
+         
+      };
+
+   return $interp;   
+   }
+
+sub _value2
+   {
+   my ($self, $key) = @_;
+  
+   if ( ! exists $self->{'_keys'} )
+      {
+      $self->_order_keys;
+      }
+     
+   if ( ! @{ $self->{'_keys'} } )
+      {
+      return;
+      }
+     
+   my ( $x_dn_i, $x_up_i ) = _find_neighbors( $self->{'_keys'}, $key );
+ 
+   my $x_dn = $self->{'_keys'}[ $x_dn_i ];
+   my $x_up = $self->{'_keys'}[ $x_up_i ];
+
+   my $y_dn = $self->{'_data'}{$x_dn};
+   my $y_up = $self->{'_data'}{$x_up};
+
+   return $x_dn, $x_up, $y_dn, $y_up;
+   }
+
 
 sub _value
   {
@@ -107,7 +163,7 @@ sub _generate_interp_closure
       };
 
    return $interp;
-   } 
+   }
 
 sub _mx_plus_b
   {
