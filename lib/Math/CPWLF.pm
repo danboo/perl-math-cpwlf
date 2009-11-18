@@ -3,10 +3,6 @@ package Math::CPWLF;
 use warnings;
 use strict;
 
-use overload
-   '&{}'    => sub { my $self = $_[0]; return _interp_closure( $self ) },
-   fallback => 1;
-
 =head1 NAME
 
 Math::CPWLF - Multidimensional interpolation using continuous piece-wise linear
@@ -42,6 +38,10 @@ None
 
 =cut
 
+use overload
+   '&{}'    => sub { my $self = $_[0]; return _interp_closure( [ [ $self ] ] ) },
+   fallback => 1;
+
 sub new
   {
   my $self  = bless {}, shift();
@@ -62,28 +62,116 @@ sub knot
   
 sub _interp_closure
    {
-   my ( @cpwlfs ) = @_;
+   my ( $stack ) = @_;
    
-   my $interp;
-   
-   $interp = sub
+   my $interp = sub
       {
-      my ($k) = @_;
-      
-      print STDERR "$k @cpwlfs\n";
+      my ($x_given) = @_;
       
       ## for each closured cpwlf
       ##   get the two neighbor x,y pairs
       ## if any y is a cpwlf
-      ##   return a new closure around all x,y pairs and stack the original cpwlfs
+      ##   return a new closure around all x,y pairs unshifted onto a dimension-based cpwlf stack
       ## else work back through the stacks of x,y pairs and keys
+      ##
+      ## { 
+      ##   neighbor_dn => [x,y],
+      ##   neighbor_up => [x,y],
+      ##   key         => $key,
+      ## }
+      ## if y is a cpwlf
+      ##    - 
+          
       
-      my @pairs;
+      my @results;
+      my $make_closure;
       
-      for my $cpwlf ( @cpwlfs )
+      for my $value ( @{ $stack->[-1] } )
          {
-         my ($x_dn, $x_up, $y_dn, $y_up) = $cpwlf->_value2($k);
-         push @pairs, [ [$x_dn, $y_dn], [$x_up, $y_up] ];
+            
+         if ( ref $value eq 'HASH' )
+            {
+               
+            if ( ref $value->{y_dn} )
+               {
+               my ($x_dn, $x_up, $y_dn, $y_up) = $value->{y_dn}->_neighbors($x_given);
+               
+               if ( ref $y_dn || ref $y_up )
+                  {
+                  $make_closure = 1;
+                  }
+
+               push @results,
+                  {
+                  x_given => $x_given,
+                  x_dn    => $x_dn,
+                  y_dn    => $y_dn,
+                  x_up    => $x_up,
+                  y_up    => $y_up,
+                  into    => [ $value, 'y_dn' ],
+                  };
+               }
+
+            if ( ref $value->{y_up} )
+               {
+               my ($x_dn, $x_up, $y_dn, $y_up) = $value->{y_up}->_neighbors($x_given);
+               
+               if ( ref $y_dn || ref $y_up )
+                  {
+                  $make_closure = 1;
+                  }
+
+               push @results,
+                  {
+                  x_given => $x_given,
+                  x_dn    => $x_dn,
+                  y_dn    => $y_dn,
+                  x_up    => $x_up,
+                  y_up    => $y_up,
+                  into    => [ $value, 'y_up' ],
+                  };
+               }
+
+            }
+         else
+            {
+
+            my ($x_dn, $x_up, $y_dn, $y_up) = $value->_neighbors($x_given);
+            
+            push @results,
+               {
+               x_given => $x_given,
+               x_dn    => $x_dn,
+               y_dn    => $y_dn,
+               x_up    => $x_up,
+               y_up    => $y_up,
+               };
+
+            if ( ref $y_dn || ref $y_up )
+               {
+               $make_closure = 1;
+               }
+
+            }
+
+         }
+         
+      push @{ $stack }, \@results;
+      
+      if ( $make_closure )
+         {
+         
+         return _interp_closure( $stack );
+         
+         }
+      else
+         {
+            
+         ## unwind stacks and solve from the leaves to the trunk
+         
+      use Data::Dumper;
+      print Dumper $stack;
+         
          }
          
       };
@@ -91,7 +179,7 @@ sub _interp_closure
    return $interp;   
    }
 
-sub _value2
+sub _neighbors
    {
    my ($self, $key) = @_;
   
