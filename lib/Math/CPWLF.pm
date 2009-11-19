@@ -135,6 +135,8 @@ sub _interp_closure
             }
          else
             {
+               
+            pop @{ $stack };
 
             my ($x_dn, $x_up, $y_dn, $y_up) = $value->_neighbors($x_given);
             
@@ -169,6 +171,8 @@ sub _interp_closure
             
          ## unwind stacks and solve from the leaves to the trunk
          
+         my $return;
+         
          for my $slice ( reverse @{ $stack } )
             {
                
@@ -178,11 +182,9 @@ sub _interp_closure
                my @line    = @{ $node }{ qw/ x_dn x_up y_dn y_up / };
                my $y_given = _mx_plus_b( $node->{'x_given'}, @line );
                
-               if ( @{ $slice } == 1 )
-                  {
-                  return $y_given;
-                  }
-               elsif ( $node->{'into'} )
+               $return = $y_given;
+               
+               if ( $node->{'into'} )
                   {
                   my $parent_node = $node->{'into'}[0];
                   my $neighbor    = $node->{'into'}[1];
@@ -192,7 +194,8 @@ sub _interp_closure
                }
 
             }
-         
+            
+         return $return;
          }
          
       };
