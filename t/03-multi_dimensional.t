@@ -31,3 +31,28 @@ is( $fx->(1)(20), 60, 'interpolate, hit' );
 is( $fx->(1)(15), 45, 'interpolate, interpolate' );
 is( $fx->(3)(15), 75, 'interpolate, interpolate - 1.5 dimensions' );
 
+my $f = Math::CPWLF->new;
+for my $a ( 1 .. 5 )
+   {
+   my $fa = Math::CPWLF->new;
+   $f->knot( $a, $fa );
+   for my $b ( 1 .. 5 )
+      {
+      my $fb = Math::CPWLF->new;
+      $fa->knot( $b, $fb );
+      for my $c ( 1 .. 5 )
+         {
+         my $fc = Math::CPWLF->new;
+         $fb->knot( $c, $fc );
+         for my $d ( 1 .. 5 )
+            {
+            $fc->knot( $d, $d * 2 );
+            }
+         }
+      }
+   }
+
+is( ref $f->(1),          'CODE', 'dimension 2 is CODE' );
+is( ref $f->(1)(1),       'CODE', 'dimension 3 is CODE' );
+is( ref $f->(1)(1)(1),    'CODE', 'dimension 4 is CODE' );
+is( ref $f->(1)(1)(1)(1), 'CODE', 'dimension 5 is CODE' );
