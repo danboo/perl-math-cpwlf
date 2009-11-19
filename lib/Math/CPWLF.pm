@@ -214,7 +214,7 @@ sub _neighbors
      
    if ( ! @{ $self->{'_keys'} } )
       {
-      die;
+      die "Error: cannot interpolate with no knots";
       }
      
    my ( $x_dn_i, $x_up_i ) = _find_neighbors( $self->{'_keys'}, $key );
