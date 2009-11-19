@@ -52,7 +52,10 @@ for my $a ( 1 .. 5 )
       }
    }
 
-is( ref $f->(1),          'CODE', 'dimension 2 is CODE' );
-is( ref $f->(1)(1),       'CODE', 'dimension 3 is CODE' );
-is( ref $f->(1)(1)(1),    'CODE', 'dimension 4 is CODE' );
-is( ref $f->(1)(1)(1)(1), 'CODE', 'dimension 5 is CODE' );
+is( ref $f->(1),       'CODE', 'dimension 2 is CODE' );
+is( ref $f->(1)(1),    'CODE', 'dimension 3 is CODE' );
+is( ref $f->(1)(1)(1), 'CODE', 'dimension 4 is CODE' );
+is( ref $f->(1)(1)(1)(1), '',         'dimension 5 is a value' );
+is( $f->(1)(1)(1)(1),   2,            'all hits' );
+is( $f->(1.5)(1.5)(1.5)(1.5), 3,      'all interps' );
+is( $f->(1.5)(2.5)(3.5)(4.5), 9,      'increasing interps' );
