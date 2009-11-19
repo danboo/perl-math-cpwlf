@@ -169,8 +169,29 @@ sub _interp_closure
             
          ## unwind stacks and solve from the leaves to the trunk
          
-      use Data::Dumper;
-      print Dumper $stack;
+         for my $slice ( reverse @{ $stack } )
+            {
+               
+            for my $node ( @{ $slice } )
+               {
+
+               my @line    = @{ $node }{ qw/ x_dn x_up y_dn y_up / };
+               my $y_given = _mx_plus_b( $node->{'x_given'}, @line );
+               
+               if ( @{ $slice } == 1 )
+                  {
+                  return $y_given;
+                  }
+               elsif ( $node->{'into'} )
+                  {
+                  my $parent_node = $node->{'into'}[0];
+                  my $neighbor    = $node->{'into'}[1];
+                  $parent_node->{ $neighbor } = $y_given;
+                  }
+
+               }
+
+            }
          
          }
          
@@ -190,7 +211,7 @@ sub _neighbors
      
    if ( ! @{ $self->{'_keys'} } )
       {
-      return;
+      die;
       }
      
    my ( $x_dn_i, $x_up_i ) = _find_neighbors( $self->{'_keys'}, $key );

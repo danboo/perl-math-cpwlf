@@ -3,6 +3,10 @@ use strict;
 
 use Test::More 'no_plan';
 
+use Carp;
+
+$SIG{__WARN__} = \&Carp::confess;
+
 use Math::CPWLF;
 
 my $fy0 = Math::CPWLF->new;

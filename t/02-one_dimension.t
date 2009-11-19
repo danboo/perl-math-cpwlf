@@ -3,11 +3,13 @@ use strict;
 
 use Test::More 'no_plan';
 
+use Carp;
+
+$SIG{__WARN__} = \&Carp::confess;
+
 use Math::CPWLF;
 
 my $f = Math::CPWLF->new; 
-
-is( $f->(0), undef, 'no knots' );
 
 $f->knot( 0 => 1 );
 
