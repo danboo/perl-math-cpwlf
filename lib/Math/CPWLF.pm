@@ -228,55 +228,6 @@ sub _neighbors
    return $x_dn, $x_up, $y_dn, $y_up;
    }
 
-
-sub _value
-  {
-  my ($self, $key) = @_;
-  
-  if ( ! exists $self->{'_keys'} )
-     {
-     $self->_order_keys;
-     }
-     
-  if ( ! @{ $self->{'_keys'} } )
-     {
-     return;
-     }
-     
-  my ( $x_dn_i, $x_up_i ) = _find_neighbors( $self->{'_keys'}, $key );
-  
-  my $x_dn = $self->{'_keys'}[ $x_dn_i ];
-  my $x_up = $self->{'_keys'}[ $x_up_i ];
-
-  my $lower = $self->{'_data'}{$x_dn};
-  my $upper = $self->{'_data'}{$x_up};
-
-  my $interp = _generate_interp_closure( $lower, $upper, $key, $x_dn, $x_up );
-        
-  my $recurse = ref $lower || ref $upper;
-
-  return $recurse
-       ? $interp
-       : $interp->($key);
-  }
-  
-sub _generate_interp_closure
-   {
-   my ( $lower, $upper, $key, $x_dn, $x_up ) = @_;
-
-   my $interp = sub
-      {
-      my $k = shift();
-
-      $lower = ref $lower ? $lower->_value($k) : $lower;
-      $upper = ref $upper ? $upper->_value($k) : $upper;
-
-      return _mx_plus_b( $key, $x_dn, $x_up, $lower, $upper );
-      };
-
-   return $interp;
-   }
-
 sub _mx_plus_b
   {
   my ( $x, $x_dn, $x_up, $y_dn, $y_up ) = @_;
