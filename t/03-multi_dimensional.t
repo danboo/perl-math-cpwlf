@@ -52,10 +52,32 @@ for my $a ( 1 .. 5 )
       }
    }
 
-is( ref $f->(1),       'CODE', 'dimension 2 is CODE' );
-is( ref $f->(1)(1),    'CODE', 'dimension 3 is CODE' );
-is( ref $f->(1)(1)(1), 'CODE', 'dimension 4 is CODE' );
-is( ref $f->(1)(1)(1)(1), '',         'dimension 5 is a value' );
-is( $f->(1)(1)(1)(1),   2,            'all hits' );
-is( $f->(1.5)(1.5)(1.5)(1.5), 3,      'all interps' );
-is( $f->(1.5)(2.5)(3.5)(4.5), 9,      'increasing interps' );
+
+my $f_multi_knot = Math::CPWLF->new;
+for my $a ( 1 .. 5 )
+   {
+   for my $b ( 1 .. 5 )
+      {
+      for my $c ( 1 .. 5 )
+         {
+         for my $d ( 1 .. 5 )
+            {
+            $f_multi_knot->knot( $a, $b, $c, $d => $d * 2 );
+            }
+         }
+      }
+   }
+   
+for my $pair ( [ $f, 'manual'], [ $f_multi_knot, 'multi' ] )
+   {
+   my ( $func, $name ) = @{ $pair };
+   is( ref $func->(1),          'CODE', $name . ': dimension 2 is CODE' );
+   is( ref $func->(1)(1),       'CODE', $name . ': dimension 3 is CODE' );
+   is( ref $func->(1)(1)(1),    'CODE', $name . ': dimension 4 is CODE' );
+   is( ref $func->(1)(1)(1)(1),    '',  $name . ': dimension 5 is a value' );
+   is( $func->(1)(1)(1)(1),         2,  $name . ': all hits' );
+   is( $func->(1.5)(1.5)(1.5)(1.5), 3,  $name . ': all interps' );
+   is( $func->(1.5)(2.5)(3.5)(4.5), 9,  $name . ': increasing interps' );
+   }
+
+

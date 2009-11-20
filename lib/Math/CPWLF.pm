@@ -54,9 +54,28 @@ sub new
 
 sub knot
   {
-  my ($self, $key, $val) = @_;
-  $self->{'_data'}{$key} = $val;
+  my $self = shift @_;
+  
+  if ( @_ == 2 )
+     {
+     my ( $key, $val ) = @_;
+     $self->{'_data'}{$key} = $val;
+     }
+  elsif ( @_ > 2 )
+     {
+     my $key = shift @_;
+     
+     if ( ! defined $self->{'_data'}{$key} || ! ref $self->{'_data'}{$key} )
+        {
+        $self->{'_data'}{$key} = ( ref $self )->new;
+        }
+        
+     $self->{'_data'}{$key}->knot(@_)
+     
+     }
+
   delete $self->{'_keys'};
+
   return $self;
   }
   
@@ -67,21 +86,6 @@ sub _interp_closure
    my $interp = sub
       {
       my ($x_given) = @_;
-      
-      ## for each closured cpwlf
-      ##   get the two neighbor x,y pairs
-      ## if any y is a cpwlf
-      ##   return a new closure around all x,y pairs unshifted onto a dimension-based cpwlf stack
-      ## else work back through the stacks of x,y pairs and keys
-      ##
-      ## { 
-      ##   neighbor_dn => [x,y],
-      ##   neighbor_up => [x,y],
-      ##   key         => $key,
-      ## }
-      ## if y is a cpwlf
-      ##    - 
-          
       
       my @results;
       my $make_closure;
