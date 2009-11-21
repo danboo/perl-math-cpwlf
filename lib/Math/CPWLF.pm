@@ -9,7 +9,7 @@ use overload
 
 =head1 NAME
 
-Math::CPWLF - interpolation using nested continuous piecewise linear functions
+Math::CPWLF - interpolation using nested continuous piece-wise linear functions
 
 =head1 VERSION
 
@@ -62,7 +62,14 @@ C<Math::CPWLF> objects, much like perl hashes.
 
 =head2 new
 
-Create a new C<Math::CPWLF> function with no knots.
+Construct a new C<Math::CPWLF> function with no knots.
+
+   my $func = Math::CPWLF->new;
+   
+Optional parameters:
+
+   oob - hold, extrapolate, undef, die
+   mono_knot - constant, die, undef
 
 =cut
 
@@ -73,6 +80,15 @@ sub new
   }
   
 =head2 knot
+
+This instance method adds a knot with the given x,y values.
+
+   $func->knot( $x => $y );
+  
+Knots can be specified at arbitrary depth and intermediate knots will autovivify
+as needed:
+
+   $func->knot( $x1, $x2, $x3 => $y );
 
 =cut
 
