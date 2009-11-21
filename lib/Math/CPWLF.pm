@@ -3,10 +3,13 @@ package Math::CPWLF;
 use warnings;
 use strict;
 
+use overload
+   '&{}'    => sub { my $self = $_[0]; return _interp_closure( [ [ $self ] ] ) },
+   fallback => 1;
+
 =head1 NAME
 
-Math::CPWLF - Multidimensional interpolation using continuous piece-wise linear
-              functions
+Math::CPWLF - interpolation using nested continuous piecewise linear functions
 
 =head1 VERSION
 
@@ -16,31 +19,52 @@ Version 0.01
 
 our $VERSION = '0.01';
 
-
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
+C<Math::CPWLF> provides an interface for defining continuous piece-wise linear
+functions by setting knots with x,y pairs.
 
-Perhaps a little code snippet.
+   use Math::CPWLF;
+    
+   ## - define a line with a slope of 2
+   ## - get the y value corresponding to an x of .5
 
-    use Math::CPWLF;
+   my $func = Math::CPWLF->new;
 
-    my $foo = Math::CPWLF->new();
-    ...
+   $func->knot( 0 => 0 );
+   $func->knot( 1 => 2 );
+    
+   my $y = $func->( 0.5 );   ## == 1
+    
+Functions can be used in multiple dimensions, by specifying a C<Math::CPWLF>
+object as the y value of a knot.
 
-=head1 EXPORT
+   my $nested_func = Math::CPWLF->new;
 
-None
+   $nested_func->knot( 0 => 0 );
+   $nested_func->knot( 1 => 3 );
+   
+   $func->knot( 2 => $nested_func );
+   
+   my $deep_y = $func->( 1.5 )( 0.5 );   ## == 1.75
+   
+As a convenience, you can specify arbitrarily deep knots by passing more than
+two values two the C<knot> method.
+
+   $func->knot( 2, 2 => 4 );   ## same as $nested_func->( 2 => 4);
+
+If any of the intermediate knots do not exist they will be autovivified as
+C<Math::CPWLF> objects, much like perl hashes.
+
+   $func->knot( 3, 2 => 4 );   ## autovivify a new function
 
 =head1 FUNCTIONS
 
 =head2 new
 
-=cut
+Create a new C<Math::CPWLF> function with no knots.
 
-use overload
-   '&{}'    => sub { my $self = $_[0]; return _interp_closure( [ [ $self ] ] ) },
-   fallback => 1;
+=cut
 
 sub new
   {
