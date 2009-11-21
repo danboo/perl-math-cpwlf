@@ -99,11 +99,14 @@ sub knot
   if ( @_ == 2 )
      {
      my ( $key, $val ) = @_;
+     $key += 0;
      $self->{'_data'}{$key} = $val;
      }
   elsif ( @_ > 2 )
      {
      my $key = shift @_;
+     
+     $key += 0;
      
      if ( ! defined $self->{'_data'}{$key} || ! ref $self->{'_data'}{$key} )
         {
@@ -126,6 +129,8 @@ sub _interp_closure
    my $interp = sub
       {
       my ($x_given) = @_;
+      
+      $x_given += 0;
       
       my @results;
       my $make_closure;
