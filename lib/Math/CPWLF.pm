@@ -68,14 +68,34 @@ Construct a new C<Math::CPWLF> function with no knots.
    
 Optional parameters:
 
-   oob - hold, extrapolate, undef, die
-   mono_knot - constant, die, undef
+=over 4
+
+=item * oob
+
+Controls how a function behaves when a given x value is out of bounds of the
+current minimum and maximum knots.
+
+=over 4
+
+=item * C<die         -> Throw an exception (default).
+
+=item * C<extrapolate -> Perform a linear extrapolation using the two nearest knots.
+
+=item * C<level       ->  Return the y value of the nearest knot.
+
+=item * C<undef       -> Return undef.
+
+=back
+
+=back
 
 =cut
 
 sub new
   {
-  my $self  = bless {}, shift();
+  my $self        = bless {}, shift();
+  my %opts        = @_;
+  $self->{'opts'} = \%opts;
   return $self;
   }
   
@@ -158,6 +178,7 @@ sub _interp_closure
                   x_up    => $x_up,
                   y_up    => $y_up,
                   into    => [ $value, 'y_dn' ],
+                  opts    => $value->{'_opts'},
                   };
                }
 
@@ -178,6 +199,7 @@ sub _interp_closure
                   x_up    => $x_up,
                   y_up    => $y_up,
                   into    => [ $value, 'y_up' ],
+                  opts    => $value->{'_opts'},
                   };
                }
 
@@ -196,6 +218,7 @@ sub _interp_closure
                y_dn    => $y_dn,
                x_up    => $x_up,
                y_up    => $y_up,
+               opts    => $value->{'_opts'},
                };
 
             if ( ref $y_dn || ref $y_up )
@@ -251,6 +274,33 @@ sub _interp_closure
 
    return $interp;   
    }
+   
+{
+
+my $default_opts =
+   {
+   oob => 'die',
+   };   
+   
+sub _merge_opts
+   {
+   my ($self, $inherited_opts) = @_;
+   
+   my %opts;
+   
+   for my $opts ( $self->{'_opts'}, $inherited_opts, $default_opts )
+      {
+      for my $opt ( keys %{ $opts } )
+         {
+         next if defined $opts{$opt};
+         $opts{$opt} = $opts->{$opt};
+         }
+      }
+   
+   return \%opts;
+   }
+   
+}
 
 sub _neighbors
    {
@@ -266,15 +316,15 @@ sub _neighbors
       die "Error: cannot interpolate with no knots";
       }
      
-   my ( $x_dn_i, $x_up_i ) = _find_neighbors( $self->{'_keys'}, $key );
- 
+   my ( $x_dn_i, $x_up_i, $state ) = _find_neighbors( $self->{'_keys'}, $key );
+   
    my $x_dn = $self->{'_keys'}[ $x_dn_i ];
    my $x_up = $self->{'_keys'}[ $x_up_i ];
 
    my $y_dn = $self->{'_data'}{$x_dn};
    my $y_up = $self->{'_data'}{$x_up};
 
-   return $x_dn, $x_up, $y_dn, $y_up;
+   return $x_dn, $x_up, $y_dn, $y_up, $state;
    }
 
 sub _mx_plus_b
@@ -312,44 +362,44 @@ sub _find_neighbors
    ## empty arrays return all undefs
    if ( $array_size < 1 )
       {
-      return( undef, undef );
+      return( undef, undef, {} );
       }
 
-   ## single knot functions  
-   if ( $array_size == 1 )
-      {
-      return( 0, 0 );
-      }
+#   ## single knot functions  
+#   if ( $array_size == 1 )
+#      {
+#      return( 0, 0, {} );
+#      }
 
    ## direct hit on min
    if ( $value == $array->[$min_index] )
       {
-      return( $min_index, $min_index );
+      return( $min_index, $min_index, {} );
       }
 
    ## direct hit on max
    if ( $value == $array->[$max_index] )
       {
-      return( $max_index, $max_index );
+      return( $max_index, $max_index, {} );
       }
 
    ## left-wise out of bounds      
    if ( $value < $array->[$min_index] )
       {
-      return( $min_index, $min_index );
+      return( $min_index, $min_index, { oob => 'left' } );
       }
 
    ## right-wise out of bounds      
    if ( $value > $array->[$max_index] )
       {
-      return( $max_index, $max_index );
+      return( $max_index, $max_index, { oob => 'right' } );
       }
    
    ## no direct hits and not out of bounds, so must
    ## be between min and max
    if ( $array_size == 2 )
       {
-      return( $min_index, $max_index );
+      return( $min_index, $max_index, {} );
       }
    
    ##                                   size:  3
@@ -361,7 +411,7 @@ sub _find_neighbors
    ## value is between the split point   
    if ( $value > $array->[$bottom_max] && $value < $array->[$top_min] )
       {
-      return( $bottom_max, $top_min );
+      return( $bottom_max, $top_min, {} );
       }
 
    ## value is inside the lower half      
