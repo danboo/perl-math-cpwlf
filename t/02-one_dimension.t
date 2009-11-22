@@ -17,10 +17,10 @@ is( $f->(0),  1, 'add one knot' );
 is( $f->(-1), 1, '. . . left-wise OOB' );
 is( $f->(2),  1, '. . . right-wise OOB' );
 
-$f->knot( "02" => 5 );
+$f->knot( 2 => 5 );
 
 is( $f->(2),   5, 'add a second knot' );
-is( $f->("00"), 1, '. . . direct hit' );
+is( $f->(0), 1, '. . . direct hit' );
 is( $f->(-1),  1, '. . . left-wise OOB' );
 is( $f->(3),   5, '. . . right-wise OOB' );
 is( $f->(1),   3, '. . . interpolate' );
@@ -41,3 +41,11 @@ is( $f->(2),   7, '. . . direct hit - 2' );
 is( $f->(-1),  1, '. . . left-wise OOB' );
 is( $f->(503), 207, '. . . right-wise OOB' );
 is( $f->(50),  103, '. . . interpolate' );
+
+## verify that user input is normalized via numification
+
+is( $f->("02"),   7, 'normalize lookup x' );
+
+$f->("02" => 7);
+
+is( $f->(2),      7, 'normalize knot() x' );
