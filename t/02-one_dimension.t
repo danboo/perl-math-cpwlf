@@ -17,10 +17,10 @@ is( $f->(0),  1, 'add one knot' );
 is( $f->(-1), 1, '. . . left-wise OOB' );
 is( $f->(2),  1, '. . . right-wise OOB' );
 
-$f->knot( 2 => 5 );
+$f->knot( "02" => 5 );
 
 is( $f->(2),   5, 'add a second knot' );
-is( $f->(0),   1, '. . . direct hit' );
+is( $f->("00"), 1, '. . . direct hit' );
 is( $f->(-1),  1, '. . . left-wise OOB' );
 is( $f->(3),   5, '. . . right-wise OOB' );
 is( $f->(1),   3, '. . . interpolate' );
