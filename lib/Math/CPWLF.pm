@@ -3,9 +3,16 @@ package Math::CPWLF;
 use warnings;
 use strict;
 
+use Carp;
+
 use overload
-   '&{}'    => sub { my $self = $_[0]; return _interp_closure( [ [ $self ] ] ) },
-   fallback => 1;
+   fallback => 1,
+   '&{}'    => sub
+      {
+      my $self = $_[0];
+      return _interp_closure( [ [ $self ] ], $self->{_opts} )
+      };
+
 
 =head1 NAME
 
@@ -144,7 +151,7 @@ sub knot
   
 sub _interp_closure
    {
-   my ( $stack ) = @_;
+   my ( $stack, $opts ) = @_;
    
    my $interp = sub
       {
@@ -163,13 +170,13 @@ sub _interp_closure
                
             if ( ref $value->{y_dn} )
                {
-               my ($x_dn, $x_up, $y_dn, $y_up) = $value->{y_dn}->_neighbors($x_given);
+               my ($x_dn, $x_up, $y_dn, $y_up, $ex) = $value->{y_dn}->_neighbors($x_given);
                
                if ( ref $y_dn || ref $y_up )
                   {
                   $make_closure = 1;
                   }
-
+                  
                push @results,
                   {
                   x_given => $x_given,
@@ -178,13 +185,12 @@ sub _interp_closure
                   x_up    => $x_up,
                   y_up    => $y_up,
                   into    => [ $value, 'y_dn' ],
-                  opts    => $value->{'_opts'},
                   };
                }
 
             if ( ref $value->{y_up} )
                {
-               my ($x_dn, $x_up, $y_dn, $y_up) = $value->{y_up}->_neighbors($x_given);
+               my ($x_dn, $x_up, $y_dn, $y_up, $ex) = $value->{y_up}->_neighbors($x_given);
                
                if ( ref $y_dn || ref $y_up )
                   {
@@ -199,7 +205,6 @@ sub _interp_closure
                   x_up    => $x_up,
                   y_up    => $y_up,
                   into    => [ $value, 'y_up' ],
-                  opts    => $value->{'_opts'},
                   };
                }
 
@@ -209,7 +214,17 @@ sub _interp_closure
                
             pop @{ $stack };
 
-            my ($x_dn, $x_up, $y_dn, $y_up) = $value->_neighbors($x_given);
+            my ($x_dn, $x_up, $y_dn, $y_up, $ex) = $value->_neighbors($x_given);
+            
+            if ( $ex->{oob} )
+               {
+               my $merge_opts = _merge_opts( $value->{_opts}, $opts );
+               if ( $merge_opts->{oob} eq 'die' )
+                  {
+                  Carp::confess "Error: given X ($x_given) was out of bounds of"
+                     . " function min or max";
+                  }
+               }
             
             push @results,
                {
@@ -218,7 +233,6 @@ sub _interp_closure
                y_dn    => $y_dn,
                x_up    => $x_up,
                y_up    => $y_up,
-               opts    => $value->{'_opts'},
                };
 
             if ( ref $y_dn || ref $y_up )
@@ -235,7 +249,7 @@ sub _interp_closure
       if ( $make_closure )
          {
          
-         return _interp_closure( $stack );
+         return _interp_closure( $stack, $opts );
          
          }
       else
@@ -316,7 +330,8 @@ sub _neighbors
       die "Error: cannot interpolate with no knots";
       }
      
-   my ( $x_dn_i, $x_up_i, $state ) = _find_neighbors( $self->{'_keys'}, $key );
+   my ( $x_dn_i, $x_up_i, $exceptions ) =
+      _find_neighbors( $self->{'_keys'}, $key );
    
    my $x_dn = $self->{'_keys'}[ $x_dn_i ];
    my $x_up = $self->{'_keys'}[ $x_up_i ];
@@ -324,7 +339,7 @@ sub _neighbors
    my $y_dn = $self->{'_data'}{$x_dn};
    my $y_up = $self->{'_data'}{$x_up};
 
-   return $x_dn, $x_up, $y_dn, $y_up, $state;
+   return $x_dn, $x_up, $y_dn, $y_up, $exceptions;
    }
 
 sub _mx_plus_b
