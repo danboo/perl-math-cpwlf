@@ -34,3 +34,20 @@ eval { $f->(0) };
 like( $@, qr/\QError: given X (0) was out of bounds of function min or max/, '0 oob default' );
 
 }
+
+{
+
+my $f = Math::CPWLF->new( oob => 'level' );
+
+$f->knot( 1, 1 );
+my $y = $f->(2);
+is($y, 1, '2 oob level' );
+
+$f->knot( 2, 2 );
+$y = $f->(3);
+is($y, 2, '3 oob level' );
+
+$y = $f->(0);
+is($y, 1, '0 oob level' );
+
+}

@@ -102,7 +102,7 @@ sub new
   {
   my $self        = bless {}, shift();
   my %opts        = @_;
-  $self->{'opts'} = \%opts;
+  $self->{_opts}  = \%opts;
   return $self;
   }
   
@@ -218,7 +218,7 @@ sub _interp_closure
             
             if ( $ex->{oob} )
                {
-               my $merge_opts = _merge_opts( $value->{_opts}, $opts );
+               my $merge_opts = $value->_merge_opts( $opts );
                if ( $merge_opts->{oob} eq 'die' )
                   {
                   Carp::confess "Error: given X ($x_given) was out of bounds of"
@@ -302,7 +302,7 @@ sub _merge_opts
    
    my %opts;
    
-   for my $opts ( $self->{'_opts'}, $inherited_opts, $default_opts )
+   for my $opts ( $self->{_opts}, $inherited_opts, $default_opts )
       {
       for my $opt ( keys %{ $opts } )
          {
