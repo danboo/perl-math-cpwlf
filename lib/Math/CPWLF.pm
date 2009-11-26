@@ -256,7 +256,13 @@ sub _interp_closure
             for my $node ( @{ $slice } )
                {
 
-               my @line    = @{ $node }{ qw/ x_dn x_up y_dn y_up / };
+               my @line    = grep defined, @{ $node }{ qw/ x_dn x_up y_dn y_up / };
+               
+               if ( @line != 4 )
+                  {
+                  return;
+                  }
+               
                my $y_given = _mx_plus_b( $node->{'x_given'}, @line );
                
                $return = $y_given;
