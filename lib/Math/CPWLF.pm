@@ -4,6 +4,7 @@ use warnings;
 use strict;
 
 use Carp;
+use List::Util;
 
 use overload
    fallback => 1,
@@ -170,7 +171,7 @@ sub _interp_closure
                
             if ( ref $value->{y_dn} )
                {
-               my ($x_dn, $x_up, $y_dn, $y_up, $ex) = $value->{y_dn}->_neighbors($x_given);
+               my ($x_dn, $x_up, $y_dn, $y_up) = $value->{y_dn}->_neighbors($x_given, $opts);
                
                if ( ref $y_dn || ref $y_up )
                   {
@@ -190,7 +191,7 @@ sub _interp_closure
 
             if ( ref $value->{y_up} )
                {
-               my ($x_dn, $x_up, $y_dn, $y_up, $ex) = $value->{y_up}->_neighbors($x_given);
+               my ($x_dn, $x_up, $y_dn, $y_up) = $value->{y_up}->_neighbors($x_given, $opts);
                
                if ( ref $y_dn || ref $y_up )
                   {
@@ -214,17 +215,7 @@ sub _interp_closure
                
             pop @{ $stack };
 
-            my ($x_dn, $x_up, $y_dn, $y_up, $ex) = $value->_neighbors($x_given);
-            
-            if ( $ex->{oob} )
-               {
-               my $merge_opts = $value->_merge_opts( $opts );
-               if ( $merge_opts->{oob} eq 'die' )
-                  {
-                  Carp::confess "Error: given X ($x_given) was out of bounds of"
-                     . " function min or max";
-                  }
-               }
+            my ($x_dn, $x_up, $y_dn, $y_up) = $value->_neighbors($x_given, $opts);
             
             push @results,
                {
@@ -318,7 +309,7 @@ sub _merge_opts
 
 sub _neighbors
    {
-   my ($self, $key) = @_;
+   my ($self, $key, $opts) = @_;
   
    if ( ! exists $self->{'_keys'} )
       {
@@ -333,13 +324,45 @@ sub _neighbors
    my ( $x_dn_i, $x_up_i, $exceptions ) =
       _find_neighbors( $self->{'_keys'}, $key );
    
+   if ( $exceptions->{oob} )
+      {
+      my $merge_opts = $self->_merge_opts( $opts );
+      if ( $merge_opts->{oob} eq 'die' )
+         {
+         Carp::confess "Error: given X ($key) was out of bounds of"
+            . " function min or max";
+         }
+      elsif ( $merge_opts->{oob} eq 'extrapolate' )
+         {
+         if ( $key < $self->{_keys}[0] )
+            {
+            $x_up_i = List::Util::min( $#{ $self->{_keys} }, $x_up_i + 1 );
+            }
+         elsif ( $key > $self->{_keys}[-1] )
+            {
+            $x_dn_i = List::Util::max( 0, $x_dn_i - 1 );
+            }
+         }
+      elsif ( $merge_opts->{oob} eq 'level' )
+         {
+         }
+      elsif ( $merge_opts->{oob} eq 'undef' )
+         {
+         return;
+         }
+      else
+         {
+         Carp::confess "Error: invalid oob option ($merge_opts->{oob})";
+         }
+      }
+
    my $x_dn = $self->{'_keys'}[ $x_dn_i ];
    my $x_up = $self->{'_keys'}[ $x_up_i ];
 
    my $y_dn = $self->{'_data'}{$x_dn};
    my $y_up = $self->{'_data'}{$x_up};
-
-   return $x_dn, $x_up, $y_dn, $y_up, $exceptions;
+   
+   return $x_dn, $x_up, $y_dn, $y_up;
    }
 
 sub _mx_plus_b

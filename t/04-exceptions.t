@@ -51,3 +51,20 @@ $y = $f->(0);
 is($y, 1, '0 oob level' );
 
 }
+
+{
+
+my $f = Math::CPWLF->new( oob => 'extrapolate' );
+
+$f->knot( 1, 1 );
+my $y = $f->(2);
+is($y, 1, '2 oob extrapolate' );
+
+$f->knot( 2, 2 );
+$y = $f->(3);
+is($y, 3, '3 oob extrapolate' );
+
+$y = $f->(0);
+is($y, 0, '0 oob extrapolate' );
+
+}
