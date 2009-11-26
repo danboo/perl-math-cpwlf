@@ -37,6 +37,23 @@ like( $@, qr/\QError: given X (0) was out of bounds of function min or max/, '0 
 
 {
 
+my $f = Math::CPWLF->new( oob => 'die' );
+
+$f->knot( 1, 1 );
+eval { $f->(2) };
+like( $@, qr/\QError: given X (2) was out of bounds of function min or max/, '2 oob die' );
+
+$f->knot( 2, 2 );
+eval { $f->(3) };
+like( $@, qr/\QError: given X (3) was out of bounds of function min or max/, '3 oob die' );
+
+eval { $f->(0) };
+like( $@, qr/\QError: given X (0) was out of bounds of function min or max/, '0 oob die' );
+
+}
+
+{
+
 my $f = Math::CPWLF->new( oob => 'level' );
 
 $f->knot( 1, 1 );
