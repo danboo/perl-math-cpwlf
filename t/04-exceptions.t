@@ -68,3 +68,20 @@ $y = $f->(0);
 is($y, 0, '0 oob extrapolate' );
 
 }
+
+{
+
+my $f = Math::CPWLF->new( oob => 'undef' );
+
+$f->knot( 1, 1 );
+my $y = $f->(2);
+is($y, undef, '2 oob undef' );
+
+$f->knot( 2, 2 );
+$y = $f->(3);
+is($y, undef, '3 oob undef' );
+
+$y = $f->(0);
+is($y, undef, '0 oob undef' );
+
+}
