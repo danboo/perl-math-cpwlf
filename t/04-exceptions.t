@@ -33,6 +33,12 @@ like( $@, qr/\QError: given X (3) was out of bounds of function min or max/, '3 
 eval { $f->(0) };
 like( $@, qr/\QError: given X (0) was out of bounds of function min or max/, '0 oob default' );
 
+$f->knot( 3, 0 => 0 );
+$f->knot( 4, 1 => 1 );
+
+eval { $f->(3.5)(2) };
+like( $@, qr/\QError: given X (2) was out of bounds of function min or max/, '2 oob default deep' );
+
 }
 
 {
@@ -49,6 +55,12 @@ like( $@, qr/\QError: given X (3) was out of bounds of function min or max/, '3 
 
 eval { $f->(0) };
 like( $@, qr/\QError: given X (0) was out of bounds of function min or max/, '0 oob die' );
+
+$f->knot( 3, 0 => 0 );
+$f->knot( 3, 1 => 1 );
+
+eval { $f->(3)(2) };
+like( $@, qr/\QError: given X (2) was out of bounds of function min or max/, '2 oob die deep' );
 
 }
 
@@ -67,6 +79,12 @@ is($y, 2, '3 oob level' );
 $y = $f->(0);
 is($y, 1, '0 oob level' );
 
+$f->knot( 3, 0 => 0 );
+$f->knot( 3, 1 => 1 );
+
+$y = $f->(3.5)(2);
+is($y, 1, '2 oob level deep' );
+
 }
 
 {
@@ -84,6 +102,12 @@ is($y, 3, '3 oob extrapolate' );
 $y = $f->(0);
 is($y, 0, '0 oob extrapolate' );
 
+$f->knot( 3, 0 => 0 );
+$f->knot( 3, 1 => 1 );
+
+$y = $f->(3.5)(2);
+is($y, 2, '2 oob extrapolate deep' );
+
 }
 
 {
@@ -100,5 +124,13 @@ is($y, undef, '3 oob undef' );
 
 $y = $f->(0);
 is($y, undef, '0 oob undef' );
+
+$f->knot( 3, 0 => 0 );
+$f->knot( 3, 1 => 1 );
+
+$SIG{__DIE__} = \&Carp::confess;
+
+$y = $f->(3.5)(2);
+#is($y, undef, '2 oob undef deep' );
 
 }
