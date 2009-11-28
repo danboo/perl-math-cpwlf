@@ -39,6 +39,14 @@ $f->knot( 4, 1 => 1 );
 eval { $f->(3.5)(2) };
 like( $@, qr/\QError: given X (2) was out of bounds of function min or max/, '2 oob default deep' );
 
+my $f4 = Math::CPWLF->new( oob => 'level' );
+$f->knot( 4, $f4 );
+$f->knot( 4, 0 => 0 );
+$f->knot( 4, 1 => 1 );
+
+my $y = $f->(4)(2);
+is($y, 1, '2 oob default -> level' );
+
 }
 
 {
@@ -62,6 +70,14 @@ $f->knot( 3, 1 => 1 );
 eval { $f->(3)(2) };
 like( $@, qr/\QError: given X (2) was out of bounds of function min or max/, '2 oob die deep' );
 
+my $f4 = Math::CPWLF->new( oob => 'level' );
+$f->knot( 4, $f4 );
+$f->knot( 4, 0 => 0 );
+$f->knot( 4, 1 => 1 );
+
+my $y = $f->(4)(2);
+is($y, 1, '2 oob die -> level' );
+
 }
 
 {
@@ -82,8 +98,16 @@ is($y, 1, '0 oob level' );
 $f->knot( 3, 0 => 0 );
 $f->knot( 3, 1 => 1 );
 
-$y = $f->(3.5)(2);
+$y = $f->(3)(2);
 is($y, 1, '2 oob level deep' );
+
+my $f4 = Math::CPWLF->new( oob => 'extrapolate' );
+$f->knot( 4, $f4 );
+$f->knot( 4, 0 => 0 );
+$f->knot( 4, 1 => 1 );
+
+$y = $f->(4)(2);
+is($y, 2, '2 oob level -> extrapolate' );
 
 }
 
@@ -105,8 +129,16 @@ is($y, 0, '0 oob extrapolate' );
 $f->knot( 3, 0 => 0 );
 $f->knot( 3, 1 => 1 );
 
-$y = $f->(3.5)(2);
+$y = $f->(3)(2);
 is($y, 2, '2 oob extrapolate deep' );
+
+my $f4 = Math::CPWLF->new( oob => 'level' );
+$f->knot( 4, $f4 );
+$f->knot( 4, 0 => 0 );
+$f->knot( 4, 1 => 1 );
+
+$y = $f->(4)(2);
+is($y, 1, '2 oob extrapolate -> level' );
 
 }
 
@@ -128,9 +160,15 @@ is($y, undef, '0 oob undef' );
 $f->knot( 3, 0 => 0 );
 $f->knot( 3, 1 => 1 );
 
-$SIG{__DIE__} = \&Carp::confess;
+$y = $f->(3)(2);
+is($y, undef, '2 oob undef deep' );
 
-$y = $f->(3.5)(2);
-#is($y, undef, '2 oob undef deep' );
+my $f4 = Math::CPWLF->new( oob => 'level' );
+$f->knot( 4, $f4 );
+$f->knot( 4, 0 => 0 );
+$f->knot( 4, 1 => 1 );
+
+$y = $f->(4)(2);
+is($y, 1, '2 oob undef -> level' );
 
 }
