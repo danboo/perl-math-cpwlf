@@ -4,6 +4,7 @@ use warnings;
 use strict;
 
 use Carp;
+use Want;
 use List::Util;
 
 use overload
@@ -13,8 +14,7 @@ use overload
       my $self = $_[0];
       return _interp_closure( [ [ $self ] ], $self->{_opts} )
       };
-
-
+      
 =head1 NAME
 
 Math::CPWLF - interpolation using nested continuous piece-wise linear functions
@@ -173,6 +173,11 @@ sub _interp_closure
                {
                my ($x_dn, $x_up, $y_dn, $y_up) = $value->{y_dn}->_neighbors($x_given, $opts);
                
+               if ( ! defined $x_dn )
+                  {
+                  return _nada();
+                  }
+            
                if ( ref $y_dn || ref $y_up )
                   {
                   $make_closure = 1;
@@ -193,6 +198,11 @@ sub _interp_closure
                {
                my ($x_dn, $x_up, $y_dn, $y_up) = $value->{y_up}->_neighbors($x_given, $opts);
                
+               if ( ! defined $x_dn )
+                  {
+                  return _nada();
+                  }
+            
                if ( ref $y_dn || ref $y_up )
                   {
                   $make_closure = 1;
@@ -216,6 +226,11 @@ sub _interp_closure
             pop @{ $stack };
 
             my ($x_dn, $x_up, $y_dn, $y_up) = $value->_neighbors($x_given, $opts);
+            
+            if ( ! defined $x_dn )
+               {
+               return _nada();
+               }
             
             push @results,
                {
@@ -256,12 +271,9 @@ sub _interp_closure
             for my $node ( @{ $slice } )
                {
 
-               my @line    = grep defined, @{ $node }{ qw/ x_dn x_up y_dn y_up / };
+               my @line = grep defined, @{ $node }{ qw/ x_dn x_up y_dn y_up / };
                
-               if ( @line != 4 )
-                  {
-                  return;
-                  }
+               return if @line != 4;
                
                my $y_given = _mx_plus_b( $node->{'x_given'}, @line );
                
@@ -285,6 +297,18 @@ sub _interp_closure
 
    return $interp;   
    }
+   
+sub _nada
+   {
+   if ( want('CODE') )
+      {
+      return \&_nada;
+      }
+   else
+      {
+      return;
+      }
+   }   
    
 {
 
