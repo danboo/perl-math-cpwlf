@@ -54,6 +54,7 @@ for my $a ( 1 .. 5 )
 
 
 my $f_multi_knot = Math::CPWLF->new;
+my $f_sep_knot = Math::CPWLF->new;
 for my $a ( 1 .. 5 )
    {
    for my $b ( 1 .. 5 )
@@ -63,12 +64,13 @@ for my $a ( 1 .. 5 )
          for my $d ( 1 .. 5 )
             {
             $f_multi_knot->knot( $a, $b, $c, $d => $d * 2 );
+            $f_sep_knot->knot->($a)($b)($c)( $d => $d * 2 );
             }
          }
       }
    }
    
-for my $pair ( [ $f, 'manual'], [ $f_multi_knot, 'multi' ] )
+for my $pair ( [ $f, 'manual'], [ $f_multi_knot, 'multi' ], [ $f_sep_knot, 'sep' ] )
    {
    my ( $func, $name ) = @{ $pair };
    is( ref $func->(1),          'CODE', $name . ': dimension 2 is CODE' );

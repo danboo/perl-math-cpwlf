@@ -89,7 +89,7 @@ current minimum and maximum knots.
 
 =item * C<extrapolate -> Perform a linear extrapolation using the two nearest knots.
 
-=item * C<level       ->  Return the y value of the nearest knot.
+=item * C<level       -> Return the y value of the nearest knot.
 
 =item * C<undef       -> Return undef.
 
@@ -114,9 +114,16 @@ This instance method adds a knot with the given x,y values.
    $func->knot( $x => $y );
   
 Knots can be specified at arbitrary depth and intermediate knots will autovivify
-as needed:
+as needed. There are two alternate syntaxes for setting deep knots. The first
+involves passing 3 or more values to the C<knot()> call, where the last value
+is the y value and the other values are the depth-ordered x values:
 
    $func->knot( $x1, $x2, $x3 => $y );
+   
+The other syntax is a bit more hash-like in that it separates the x values. Note
+that it starts with invoking the C<knot()> method with no arguments.
+
+   $func->knot->($x1)($x2)( $x3 => $y );
 
 =cut
 
@@ -124,7 +131,29 @@ sub knot
   {
   my $self = shift @_;
   
-  if ( @_ == 2 )
+  ## $f->knot->(1)(2)( 3 => 4 );
+  if ( @_ == 0 )
+     {
+     return sub
+        {
+        $self->knot( @_ );
+        };
+     }
+  elsif ( @_ == 1 )
+     {
+     my $key = shift;
+
+     if ( ! defined $self->{'_data'}{$key} || ! ref $self->{'_data'}{$key} )
+        {
+        $self->{'_data'}{$key} = ( ref $self )->new;
+        }
+
+     return sub
+        {
+        $self->{'_data'}{$key}->knot( @_ );
+        };
+     }
+  elsif ( @_ == 2 )
      {
      my ( $key, $val ) = @_;
      $key += 0;
@@ -132,7 +161,7 @@ sub knot
      }
   elsif ( @_ > 2 )
      {
-     my $key = shift @_;
+     my $key = shift;
      
      $key += 0;
      

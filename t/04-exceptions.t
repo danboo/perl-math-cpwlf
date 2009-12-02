@@ -165,8 +165,8 @@ is($y, undef, '2 oob undef deep' );
 
 my $f4 = Math::CPWLF->new( oob => 'level' );
 $f->knot( 4, $f4 );
-$f->knot( 4, 0 => 0 );
-$f->knot( 4, 1 => 1 );
+$f->knot->(4)( 0 => 0 );
+$f->knot->(4)( 1 => 1 );
 
 $y = $f->(4)(2);
 is($y, 1, '2 oob undef -> level' );
