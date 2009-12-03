@@ -21,11 +21,11 @@ Math::CPWLF - interpolation using nested continuous piece-wise linear functions
 
 =head1 VERSION
 
-Version 0.01
+Version 0.10
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.10';
 
 =head1 SYNOPSIS
 
@@ -34,37 +34,34 @@ functions by setting knots with x,y pairs.
 
    use Math::CPWLF;
     
-   ## - define a line with a slope of 2
-   ## - get the y value corresponding to an x of .5
+   $func = Math::CPWLF->new;
 
-   my $func = Math::CPWLF->new;
-
-   $func->knot( 0 => 0 );
-   $func->knot( 1 => 2 );
+   $func->knot( 0 => 0 );             ## set the knot at f(0) equal to 0
+   $func->knot( 1 => 2 );             ## set the knot at f(1) equal to 2
     
-   my $y = $func->( 0.5 );   ## == 1
+   $y = $func->( 0.5 );               ## interpolate f(0.5) ($y == 1)
     
 Functions can be used in multiple dimensions, by specifying a C<Math::CPWLF>
 object as the y value of a knot.
 
-   my $nested_func = Math::CPWLF->new;
+   $nested_func = Math::CPWLF->new;
 
    $nested_func->knot( 0 => 0 );
    $nested_func->knot( 1 => 3 );
    
    $func->knot( 2 => $nested_func );
    
-   my $deep_y = $func->( 1.5 )( 0.5 );   ## == 1.75
+   $deep_y = $func->( 1.5 )( 0.5 );   ## $deep_y == 1.75
    
 As a convenience, you can specify arbitrarily deep knots by passing more than
 two values two the C<knot> method.
 
-   $func->knot( 2, 2 => 4 );   ## same as $nested_func->( 2 => 4);
+   $func->knot( 2, 2 => 4 );          ## same as $nested_func->( 2 => 4);
 
 If any of the intermediate knots do not exist they will be autovivified as
 C<Math::CPWLF> objects, much like perl hashes.
 
-   $func->knot( 3, 2 => 4 );   ## autovivify a new function
+   $func->knot( 3, 2 => 4 );          ## autovivify top level f(3)
 
 =head1 FUNCTIONS
 
@@ -81,17 +78,19 @@ Optional parameters:
 =item * oob
 
 Controls how a function behaves when a given x value is out of bounds of the
-current minimum and maximum knots.
+current minimum and maximum knots. If a function defines an C<oob> method in
+its constructor, that method is also used for any nested functions that were
+not explicitly constructed with their own C<oob> methods.
 
 =over 4
 
-=item * C<die         -> Throw an exception (default).
+=item * C<die> - Throw an exception (default).
 
-=item * C<extrapolate -> Perform a linear extrapolation using the two nearest knots.
+=item * C<extrapolate> - Perform a linear extrapolation using the two nearest knots.
 
-=item * C<level       -> Return the y value of the nearest knot.
+=item * C<level> - Return the y value of the nearest knot.
 
-=item * C<undef       -> Return undef.
+=item * C<undef> - Return undef.
 
 =back
 
