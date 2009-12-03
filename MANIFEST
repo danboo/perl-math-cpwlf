@@ -11,3 +11,4 @@ t/03-multi_dimensional.t
 t/04-exceptions.t
 t/pod-coverage.t
 t/pod.t
+META.yml

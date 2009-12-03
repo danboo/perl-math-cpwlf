@@ -9,6 +9,8 @@ my $builder = Module::Build->new(
     dist_version_from   => 'lib/Math/CPWLF.pm',
     build_requires => {
         'Test::More' => 0,
+        'Want'       => 0,
+        'List::Util' => 0,
     },
     add_to_cleanup      => [ 'Math-CPWLF-*' ],
     create_makefile_pl => 'traditional',

@@ -21,11 +21,11 @@ Math::CPWLF - interpolation using nested continuous piece-wise linear functions
 
 =head1 VERSION
 
-Version 0.10
+Version 0.11
 
 =cut
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 =head1 SYNOPSIS
 
@@ -498,11 +498,11 @@ sub _find_neighbors
       return( $min_index, $max_index, {} );
       }
    
-   ##                                   size:  3
-   my $bottom_min = $min_index;             #  0 
-   my $bottom_max = int( $array_size / 2 ); #  1
-   my $top_min    = $bottom_max + 1;        #  2
-   my $top_max    = $max_index;             #  2
+   ##                                                        size:  3 20
+   my $bottom_min = $min_index;                                  #  0  0
+   my $bottom_max = $min_index + int( ( $array_size - 1 ) / 2 ); #  1  9
+   my $top_min    = $bottom_max + 1;                             #  2 10
+   my $top_max    = $max_index;                                  #  2 19
 
    ## value is between the split point   
    if ( $value > $array->[$bottom_max] && $value < $array->[$top_min] )
