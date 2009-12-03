@@ -1,5 +1,8 @@
 Revision history for Math-CPWLF
 
+0.11    Thu Dec  3 00:23:31 2009
+        - fixed a bug in how the array search in _find_neighbors set the lower max
+
 0.10    Wed Dec  2 22:15:14 2009
         First version, released on an unsuspecting world.
 

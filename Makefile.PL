@@ -9,8 +9,8 @@ WriteMakefile
           'VERSION_FROM' => 'lib/Math/CPWLF.pm',
           'PREREQ_PM' => {
                            'Test::More' => 0,
-                           'Want'       => 0,
                            'List::Util' => 0,
+                           'Want' => 0
                          }
         )
 ;
