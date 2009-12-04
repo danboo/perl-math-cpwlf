@@ -67,7 +67,8 @@ C<Math::CPWLF> objects, much like perl hashes.
 
 =head2 new
 
-Construct a new C<Math::CPWLF> function with no knots.
+Construct a new C<Math::CPWLF> function with no knots, and the default out of
+bounds behavior.
 
    my $func = Math::CPWLF->new;
    
@@ -93,6 +94,11 @@ not explicitly constructed with their own C<oob> methods.
 =item * C<undef> - Return undef.
 
 =back
+
+Construct an instance that returns C<undef> or empty list when the requested x
+is out of bounds:
+
+   my $func = Math::CPWLF->new( oob => 'undef' );
 
 =back
 
