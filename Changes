@@ -1,5 +1,9 @@
 Revision history for Math-CPWLF
 
+0.12    Sun Dec  6 11:19:12 2009
+        - give doc example on setting oob behavior
+        - optimize direct hits of x values to avoid the binary search
+
 0.11    Thu Dec  3 00:23:31 2009
         - fixed a bug in how the array search in _find_neighbors set the lower max
 
