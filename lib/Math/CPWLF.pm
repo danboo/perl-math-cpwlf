@@ -384,9 +384,13 @@ sub _neighbors
       {
       die "Error: cannot interpolate with no knots";
       }
-     
-   my ( $x_dn_i, $x_up_i, $exceptions ) =
-      _find_neighbors( $self->{'_keys'}, $key );
+
+   my ( $x_dn_i, $x_up_i, $exceptions ) = do
+      {
+      my $min = 0;
+      my $max = $#{ $self->{'_keys'} };
+      _find_neighbors( $self->{'_keys'}, $key, $min, $max );
+      };
    
    if ( $exceptions->{oob} )
       {
@@ -449,16 +453,6 @@ sub _find_neighbors
    {
    my ( $array, $value, $min_index, $max_index ) = @_;
    
-   if ( ! defined $min_index )
-      {
-      $min_index = 0;
-      }
-
-   if ( ! defined $max_index )
-      {
-      $max_index = $#{ $array };
-      }
-      
    my $array_size = $max_index - $min_index + 1;
 
    ## empty arrays return all undefs
