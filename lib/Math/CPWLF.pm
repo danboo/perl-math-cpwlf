@@ -378,6 +378,7 @@ sub _neighbors
    if ( ! exists $self->{'_keys'} )
       {
       $self->_order_keys;
+      $self->_index_keys;
       }
      
    if ( ! @{ $self->{'_keys'} } )
@@ -385,12 +386,23 @@ sub _neighbors
       die "Error: cannot interpolate with no knots";
       }
 
-   my ( $x_dn_i, $x_up_i, $exceptions ) = do
+   my ( $x_dn_i, $x_up_i, $exceptions );
+      
+   if ( exists $self->{'_index'}{$key} )
       {
-      my $min = 0;
-      my $max = $#{ $self->{'_keys'} };
-      _find_neighbors( $self->{'_keys'}, $key, $min, $max );
-      };
+      $x_dn_i     = $self->{'_index'}{$key};
+      $x_up_i     = $x_dn_i;
+      $exceptions = {};
+      }
+   else
+      {
+      ( $x_dn_i, $x_up_i, $exceptions ) = do
+         {
+         my $min = 0;
+         my $max = $#{ $self->{'_keys'} };
+         _find_neighbors( $self->{'_keys'}, $key, $min, $max );
+         };
+      }
    
    if ( $exceptions->{oob} )
       {
@@ -461,12 +473,6 @@ sub _find_neighbors
       return( undef, undef, {} );
       }
 
-#   ## single knot functions  
-#   if ( $array_size == 1 )
-#      {
-#      return( 0, 0, {} );
-#      }
-
    ## direct hit on min
    if ( $value == $array->[$min_index] )
       {
@@ -533,7 +539,18 @@ sub _order_keys
    my @ordered_keys = sort { $a <=> $b } keys %{ $self->{'_data'} };
    
    $self->{'_keys'} = \@ordered_keys;
-   }  
+   }
+   
+sub _index_keys
+   {
+   my ( $self ) = @_;
+
+   delete $self->{'_index'};
+   for my $i ( 0 .. $#{ $self->{'_keys'} } )
+      {
+      $self->{'_index'}{ $self->{'_keys'}[$i] } = $i;
+      }
+   }
 
 =head1 AUTHOR
 
