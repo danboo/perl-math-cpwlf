@@ -519,12 +519,14 @@ sub _find_neighbors
    ## value is inside the lower half      
    if ( $value < $array->[$top_min] )
       {
-      @_ = ( $array, $value, $bottom_min, $bottom_max );
+      $_[2] = $bottom_min;
+      $_[3] = $bottom_max;
       }
    ## value is inside the upper half
    else
       {
-      @_ = ( $array, $value, $top_min, $top_max );
+      $_[2] = $top_min;
+      $_[3] = $top_max;
       }
 
    goto &_find_neighbors;
