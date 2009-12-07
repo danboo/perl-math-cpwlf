@@ -41,3 +41,17 @@ is( $f->("02"),   7, 'normalize lookup x' );
 $f->("02" => 7);
 
 is( $f->(2),      7, 'normalize knot() x' );
+
+my $f100 = Math::CPWLF->new;
+
+for my $i ( -100 .. 100 )
+   {
+   $f100->knot( $i => $i );
+   }
+
+for my $i ( -200 .. 200 )
+   {
+   my $x = $i / 2;
+   is( $f100->( $x ), $x, "range test ( $i : $x )" );
+   }
+   
