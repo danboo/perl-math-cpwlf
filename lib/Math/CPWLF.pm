@@ -466,70 +466,50 @@ sub _find_neighbors
    my ( $array, $value, $min_index, $max_index ) = @_;
    
    my $array_size = $max_index - $min_index + 1;
+   
+   if ( $array_size > 2 )
+      {
 
-   ## empty arrays return all undefs
-   if ( $array_size < 1 )
+      ##                                                        size:  3 20
+      my $mid_index  = $min_index + int( ( $array_size - 1 ) / 2 ); #  1  9
+      
+      ## value is inside the lower half      
+      if ( $value <= $array->[$mid_index] )
+         {
+         $_[3] = $mid_index;
+         }
+      ## value is inside the upper half
+      else
+         {
+         $_[2] = $mid_index;
+         }
+
+      goto &_find_neighbors;
+
+      }
+   elsif ( $array_size > 0 )
+      {
+
+      ## left-wise out of bounds      
+      if ( $value < $array->[$min_index] )
+         {
+         return( $min_index, $min_index, { oob => 'left' } );
+         }
+
+      ## right-wise out of bounds      
+      if ( $value > $array->[$max_index] )
+         {
+         return( $max_index, $max_index, { oob => 'right' } );
+         }
+   
+      return( $min_index, $max_index, {} );
+
+      }
+   else
       {
       return( undef, undef, {} );
       }
 
-   ## direct hit on min
-   if ( $value == $array->[$min_index] )
-      {
-      return( $min_index, $min_index, {} );
-      }
-
-   ## direct hit on max
-   if ( $value == $array->[$max_index] )
-      {
-      return( $max_index, $max_index, {} );
-      }
-
-   ## left-wise out of bounds      
-   if ( $value < $array->[$min_index] )
-      {
-      return( $min_index, $min_index, { oob => 'left' } );
-      }
-
-   ## right-wise out of bounds      
-   if ( $value > $array->[$max_index] )
-      {
-      return( $max_index, $max_index, { oob => 'right' } );
-      }
-   
-   ## no direct hits and not out of bounds, so must
-   ## be between min and max
-   if ( $array_size == 2 )
-      {
-      return( $min_index, $max_index, {} );
-      }
-   
-   ##                                                        size:  3 20
-   my $bottom_min = $min_index;                                  #  0  0
-   my $bottom_max = $min_index + int( ( $array_size - 1 ) / 2 ); #  1  9
-   my $top_min    = $bottom_max + 1;                             #  2 10
-   my $top_max    = $max_index;                                  #  2 19
-
-   ## value is between the split point   
-   if ( $value > $array->[$bottom_max] && $value < $array->[$top_min] )
-      {
-      return( $bottom_max, $top_min, {} );
-      }
-
-   ## value is inside the lower half      
-   if ( $value < $array->[$top_min] )
-      {
-      $_[2] = $bottom_min;
-      $_[3] = $bottom_max;
-      }
-   ## value is inside the upper half
-   else
-      {
-      $_[2] = $top_min;
-      $_[3] = $top_max;
-      }
-
-   goto &_find_neighbors;
    }
    
 sub _order_keys
