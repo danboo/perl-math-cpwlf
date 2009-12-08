@@ -386,25 +386,36 @@ sub _neighbors
       die "Error: cannot interpolate with no knots";
       }
 
-   my ( $x_dn_i, $x_up_i, $exceptions );
+   my ( $x_dn_i, $x_up_i, $oob );
       
    if ( exists $self->{'_index'}{$key} )
       {
       $x_dn_i     = $self->{'_index'}{$key};
       $x_up_i     = $x_dn_i;
-      $exceptions = {};
+      }
+   elsif ( $key < $self->{'_keys'}[0] )
+      {
+      $x_dn_i = 0;
+      $x_up_i = 0;
+      $oob    = 1;
+      }
+   elsif ( $key > $self->{'_keys'}[-1] )
+      {
+      $x_dn_i = -1;
+      $x_up_i = -1;
+      $oob    = 1;
       }
    else
       {
-      ( $x_dn_i, $x_up_i, $exceptions ) = do
+      ( $x_dn_i, $x_up_i ) = do
          {
          my $min = 0;
          my $max = $#{ $self->{'_keys'} };
-         _find_neighbors( $self->{'_keys'}, $key, $min, $max );
+         _binary_search( $self->{'_keys'}, $key, $min, $max );
          };
       }
    
-   if ( $exceptions->{oob} )
+   if ( $oob )
       {
       my $merge_opts = $self->_merge_opts( $opts );
       if ( $merge_opts->{oob} eq 'die' )
@@ -461,7 +472,7 @@ sub _mx_plus_b
   return $y;
   }
   
-sub _find_neighbors
+sub _binary_search
    {
    my ( $array, $value, $min_index, $max_index ) = @_;
    
@@ -484,30 +495,18 @@ sub _find_neighbors
          $_[2] = $mid_index;
          }
 
-      goto &_find_neighbors;
+      goto &_binary_search;
 
       }
    elsif ( $array_size > 0 )
       {
 
-      ## left-wise out of bounds      
-      if ( $value < $array->[$min_index] )
-         {
-         return( $min_index, $min_index, { oob => 'left' } );
-         }
-
-      ## right-wise out of bounds      
-      if ( $value > $array->[$max_index] )
-         {
-         return( $max_index, $max_index, { oob => 'right' } );
-         }
-   
-      return( $min_index, $max_index, {} );
+      return( $min_index, $max_index );
 
       }
    else
       {
-      return( undef, undef, {} );
+      return( undef, undef );
       }
 
    }
