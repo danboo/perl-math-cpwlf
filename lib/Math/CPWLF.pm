@@ -312,8 +312,6 @@ sub _interp_closure
 
                my @line = grep defined, @{ $node }{ qw/ x_dn x_up y_dn y_up / };
                
-               return if @line != 4;
-               
                my $y_given = _mx_plus_b( $node->{'x_given'}, @line );
                
                $return = $y_given;

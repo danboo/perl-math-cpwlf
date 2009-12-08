@@ -163,6 +163,9 @@ $f->knot( 3, 1 => 1 );
 $y = $f->(3)(2);
 is($y, undef, '2 oob undef deep' );
 
+$y = $f->(3)(2)(1);
+is($y, undef, '2,1 oob undef deep' );
+
 my $f4 = Math::CPWLF->new( oob => 'level' );
 $f->knot( 4, $f4 );
 $f->knot->(4)( 0 => 0 );
@@ -170,5 +173,15 @@ $f->knot->(4)( 1 => 1 );
 
 $y = $f->(4)(2);
 is($y, 1, '2 oob undef -> level' );
+
+}
+
+{
+
+my $f = Math::CPWLF->new( oob => 'potato' );
+
+$f->knot( 1, 1 );
+eval { $f->(2) };
+like( $@, qr/\QError: invalid oob option (potato)/, 'invalid oob handler' );
 
 }

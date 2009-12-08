@@ -55,6 +55,12 @@ for my $a ( 1 .. 5 )
 
 my $f_multi_knot = Math::CPWLF->new;
 my $f_sep_knot = Math::CPWLF->new;
+
+## preset the functions as single dimension,
+## to be sure they are auto-upgraded to nested
+$f_multi_knot->knot( 1 => 1 );
+$f_sep_knot->knot( 1 => 1 );
+
 for my $a ( 1 .. 5 )
    {
    for my $b ( 1 .. 5 )
@@ -81,5 +87,15 @@ for my $pair ( [ $f, 'manual'], [ $f_multi_knot, 'multi' ], [ $f_sep_knot, 'sep'
    is( $func->(1.5)(1.5)(1.5)(1.5), 3,  $name . ': all interps' );
    is( $func->(1.5)(2.5)(3.5)(4.5), 9,  $name . ': increasing interps' );
    }
-
-
+   
+## test that 3 level interps work when the upper and lower neighbors are values
+my $mixed_func = Math::CPWLF->new;
+$mixed_func->knot( 0       => 1 );
+$mixed_func->knot( 1, 1    => 1 );
+$mixed_func->knot( 1, 2, 1 => 1 );
+$mixed_func->knot( 1, 3    => 1 );
+$mixed_func->knot( 2       => 1 );
+is( $mixed_func->(0.5)(1)    , 1, '1.5d mixed lower' );
+is( $mixed_func->(1)(1.5)(1) , 1, '2.5d mixed lower' );
+is( $mixed_func->(1)(2.5)(1) , 1, '2.5d mixed upper' );
+is( $mixed_func->(1.5)(1)    , 1, '1.5d mixed upper' );
