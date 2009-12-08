@@ -136,6 +136,7 @@ sub knot
   {
   my $self = shift @_;
   
+  ## caller intends to use hash-like multi-dimensional syntax
   ## $f->knot->(1)(2)( 3 => 4 );
   if ( @_ == 0 )
      {
@@ -144,6 +145,7 @@ sub knot
         $self->knot( @_ );
         };
      }
+  ## caller is in the middle of using hash-like multi-dimensional syntax
   elsif ( @_ == 1 )
      {
      my $key = shift;
@@ -158,12 +160,15 @@ sub knot
         $self->{'_data'}{$key}->knot( @_ );
         };
      }
+  ## args are an x,y pair
   elsif ( @_ == 2 )
      {
      my ( $key, $val ) = @_;
      $key += 0;
      $self->{'_data'}{$key} = $val;
      }
+  ## caller is using bulk multi-dimensional syntax
+  ## $f->knot( 1, 2, 3 => 4 );
   elsif ( @_ > 2 )
      {
      my $key = shift;
@@ -331,7 +336,10 @@ sub _interp_closure
 
    return $interp;   
    }
-   
+
+## used to handle 'undef' oob exceptions
+##   - returns a reference to itself in CODEREF context
+##   - else returns undef   
 sub _nada
    {
    if ( want('CODE') )
@@ -350,7 +358,11 @@ my $default_opts =
    {
    oob => 'die',
    };   
-   
+
+## - merges the options, priority from high to low is:
+##    - object
+##    - inherited
+##    - defaults
 sub _merge_opts
    {
    my ($self, $inherited_opts) = @_;
@@ -371,6 +383,10 @@ sub _merge_opts
    
 }
 
+## - locate the neighboring x and y pairs to the given x values
+## - handles oob exceptions
+## - handles direct hits
+## - handles empty functions
 sub _neighbors
    {
    my ($self, $key, $opts) = @_;
@@ -456,6 +472,8 @@ sub _neighbors
    return $x_dn, $x_up, $y_dn, $y_up;
    }
 
+## converts a given x value and two points that define a line
+## to the corresponding y value
 sub _mx_plus_b
   {
   my ( $x, $x_dn, $x_up, $y_dn, $y_up ) = @_;
@@ -471,7 +489,9 @@ sub _mx_plus_b
 
   return $y;
   }
-  
+
+## vanilla binary search algorithm used to locate a given x value
+## that is within the defined range of the function  
 sub _binary_search
    {
    my ( $array, $value, $min_index, $max_index ) = @_;
@@ -511,6 +531,8 @@ sub _binary_search
 
    }
    
+## - called on the first lookup after a knot has been set   
+## - caches an array of ordered x values
 sub _order_keys
    {
    my ( $self ) = @_;
@@ -519,7 +541,9 @@ sub _order_keys
    
    $self->{'_keys'} = \@ordered_keys;
    }
-   
+
+## - called on the first lookup after a knot has been set   
+## - creates an index mapping knot x values to their ordered indexes
 sub _index_keys
    {
    my ( $self ) = @_;
