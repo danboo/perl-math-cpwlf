@@ -212,15 +212,9 @@ sub _interp_closure
                {
                my ($x_dn, $x_up, $y_dn, $y_up) = $value->{y_dn}->_neighbors($x_given, $opts);
                
-               if ( ! defined $x_dn )
-                  {
-                  return _nada();
-                  }
+               return _nada() if ! defined $x_dn;
             
-               if ( ref $y_dn || ref $y_up )
-                  {
-                  $make_closure = 1;
-                  }
+               $make_closure = ref $y_dn || ref $y_up;
                   
                push @results,
                   {
@@ -237,15 +231,9 @@ sub _interp_closure
                {
                my ($x_dn, $x_up, $y_dn, $y_up) = $value->{y_up}->_neighbors($x_given, $opts);
                
-               if ( ! defined $x_dn )
-                  {
-                  return _nada();
-                  }
+               return _nada() if ! defined $x_dn;
             
-               if ( ref $y_dn || ref $y_up )
-                  {
-                  $make_closure = 1;
-                  }
+               $make_closure = ref $y_dn || ref $y_up;
 
                push @results,
                   {
@@ -266,11 +254,8 @@ sub _interp_closure
 
             my ($x_dn, $x_up, $y_dn, $y_up) = $value->_neighbors($x_given, $opts);
             
-            if ( ! defined $x_dn )
-               {
-               return _nada();
-               }
-            
+            return _nada() if ! defined $x_dn;
+
             push @results,
                {
                x_given => $x_given,
@@ -280,10 +265,7 @@ sub _interp_closure
                y_up    => $y_up,
                };
 
-            if ( ref $y_dn || ref $y_up )
-               {
-               $make_closure = 1;
-               }
+            $make_closure = ref $y_dn || ref $y_up;
 
             }
 
@@ -291,48 +273,46 @@ sub _interp_closure
          
       push @{ $stack }, \@results;
       
-      if ( $make_closure )
-         {
-         
-         return _interp_closure( $stack, $opts );
-         
-         }
-      else
-         {
-            
-         ## unwind stacks and solve from the leaves to the trunk
-         
-         my $return;
-         
-         for my $slice ( reverse @{ $stack } )
-            {
-               
-            for my $node ( @{ $slice } )
-               {
-
-               my @line = grep defined, @{ $node }{ qw/ x_dn x_up y_dn y_up / };
-               
-               my $y_given = _mx_plus_b( $node->{'x_given'}, @line );
-               
-               $return = $y_given;
-               
-               if ( $node->{'into'} )
-                  {
-                  my $parent_node = $node->{'into'}[0];
-                  my $neighbor    = $node->{'into'}[1];
-                  $parent_node->{ $neighbor } = $y_given;
-                  }
-
-               }
-
-            }
-            
-         return $return;
-         }
-         
+      return $make_closure ? _interp_closure( $stack, $opts )
+                           : _unwind_stack( $stack )
+      
       };
 
    return $interp;   
+   }
+
+## converts the final stack of curried line segments and x values to the final
+## y value
+sub _unwind_stack
+   {
+   my ($stack) = @_;
+
+   my $interp_y;
+   
+   for my $slice ( reverse @{ $stack } )
+      {
+         
+      for my $node ( @{ $slice } )
+         {
+
+         my @line = grep defined, @{ $node }{ qw/ x_dn x_up y_dn y_up / };
+         
+         my $y_given = _mx_plus_b( $node->{'x_given'}, @line );
+         
+         $interp_y = $y_given;
+         
+         if ( $node->{'into'} )
+            {
+            my $parent_node = $node->{'into'}[0];
+            my $neighbor    = $node->{'into'}[1];
+            $parent_node->{ $neighbor } = $y_given;
+            }
+
+         }
+
+      }
+      
+   return $interp_y;
    }
 
 ## used to handle 'undef' oob exceptions
