@@ -259,7 +259,7 @@ sub _interp_closure
       push @{ $stack }, \@results;
       
       return $make_closure ? _interp_closure( $stack, $opts )
-                           : _unwind_stack( $stack )
+                           : _reduce_tree( $stack )
       
       };
 
@@ -268,7 +268,7 @@ sub _interp_closure
 
 ## converts the final stack of curried line segments and x values to the final
 ## y value
-sub _unwind_stack
+sub _reduce_tree
    {
    my ($stack) = @_;
 
