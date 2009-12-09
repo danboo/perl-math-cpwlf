@@ -202,18 +202,18 @@ sub _interp_closure
       my @slice;
       my $make_closure;
       
-      for my $value ( @{ $stack->[-1] } )
+      for my $node ( @{ $stack->[-1] } )
          {
             
-         if ( ref $value eq 'HASH' )
+         if ( ref $node eq 'HASH' )
             {
             
             for my $y_pos ( 'y_dn', 'y_up' )
                {
                
-               next if ! ref $value->{$y_pos};
+               next if ! ref $node->{$y_pos};
                
-               my ($x_dn, $x_up, $y_dn, $y_up) = $value->{$y_pos}->_neighbors($x_given, $opts);
+               my ($x_dn, $x_up, $y_dn, $y_up) = $node->{$y_pos}->_neighbors($x_given, $opts);
                
                return _nada() if ! defined $x_dn;
             
@@ -226,7 +226,7 @@ sub _interp_closure
                   y_dn    => $y_dn,
                   x_up    => $x_up,
                   y_up    => $y_up,
-                  into    => [ $value, $y_pos ],
+                  into    => [ $node, $y_pos ],
                   };
 
                }
@@ -237,7 +237,7 @@ sub _interp_closure
                
             pop @{ $stack };
 
-            my ($x_dn, $x_up, $y_dn, $y_up) = $value->_neighbors($x_given, $opts);
+            my ($x_dn, $x_up, $y_dn, $y_up) = $node->_neighbors($x_given, $opts);
             
             return _nada() if ! defined $x_dn;
 
