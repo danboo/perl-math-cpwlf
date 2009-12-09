@@ -207,10 +207,13 @@ sub _interp_closure
             
          if ( ref $value eq 'HASH' )
             {
-               
-            if ( ref $value->{y_dn} )
+            
+            for my $y_pos ( 'y_dn', 'y_up' )
                {
-               my ($x_dn, $x_up, $y_dn, $y_up) = $value->{y_dn}->_neighbors($x_given, $opts);
+               
+               next if ! ref $value->{$y_pos};
+               
+               my ($x_dn, $x_up, $y_dn, $y_up) = $value->{$y_pos}->_neighbors($x_given, $opts);
                
                return _nada() if ! defined $x_dn;
             
@@ -223,27 +226,9 @@ sub _interp_closure
                   y_dn    => $y_dn,
                   x_up    => $x_up,
                   y_up    => $y_up,
-                  into    => [ $value, 'y_dn' ],
+                  into    => [ $value, $y_pos ],
                   };
-               }
 
-            if ( ref $value->{y_up} )
-               {
-               my ($x_dn, $x_up, $y_dn, $y_up) = $value->{y_up}->_neighbors($x_given, $opts);
-               
-               return _nada() if ! defined $x_dn;
-            
-               $make_closure = ref $y_dn || ref $y_up;
-
-               push @results,
-                  {
-                  x_given => $x_given,
-                  x_dn    => $x_dn,
-                  y_dn    => $y_dn,
-                  x_up    => $x_up,
-                  y_up    => $y_up,
-                  into    => [ $value, 'y_up' ],
-                  };
                }
 
             }
