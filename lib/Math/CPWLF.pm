@@ -340,14 +340,7 @@ sub _interp_closure
 ##   - else returns undef   
 sub _nada
    {
-   if ( want('CODE') )
-      {
-      return \&_nada;
-      }
-   else
-      {
-      return;
-      }
+   return want('CODE') ? \&_nada : ();
    }   
    
 {
