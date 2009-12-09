@@ -199,7 +199,7 @@ sub _interp_closure
       
       $x_given += 0;
       
-      my @results;
+      my @slice;
       my $make_closure;
       
       for my $value ( @{ $stack->[-1] } )
@@ -219,7 +219,7 @@ sub _interp_closure
             
                $make_closure = ref $y_dn || ref $y_up;
                   
-               push @results,
+               push @slice,
                   {
                   x_given => $x_given,
                   x_dn    => $x_dn,
@@ -241,7 +241,7 @@ sub _interp_closure
             
             return _nada() if ! defined $x_dn;
 
-            push @results,
+            push @slice,
                {
                x_given => $x_given,
                x_dn    => $x_dn,
@@ -256,7 +256,7 @@ sub _interp_closure
 
          }
          
-      push @{ $stack }, \@results;
+      push @{ $stack }, \@slice;
       
       return $make_closure ? _interp_closure( $stack, $opts )
                            : _reduce_tree( $stack )
