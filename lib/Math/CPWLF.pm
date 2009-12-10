@@ -12,7 +12,7 @@ use overload
    '&{}'    => sub
       {
       my $self = $_[0];
-      return _interp_closure( [ [ $self ] ], $self->{_opts} )
+      return _top_interp_closure( $self, $self->{_opts} )
       };
       
 =head1 NAME
@@ -189,7 +189,40 @@ sub knot
   return $self;
   }
   
-sub _interp_closure
+sub _top_interp_closure
+   {
+   my ( $func, $opts ) = @_;
+   
+   my $interp = sub
+      {
+      my ( $x_given ) = @_;
+
+      $x_given += 0;
+
+      my ($x_dn, $x_up, $y_dn, $y_up) =
+         $func->_neighbors($x_given, $opts);
+      
+      return _nada() if ! defined $x_dn;
+
+      my $node =
+         {
+         x_given => $x_given,
+         x_dn    => $x_dn,
+         y_dn    => $y_dn,
+         x_up    => $x_up,
+         y_up    => $y_up,
+         };
+
+      my @slice = ( $node );
+      my @tree  = ( \@slice );
+
+      return ref $y_dn || ref $y_up ? _nested_interp_closure( \@tree, $opts )
+                                    : _reduce_tree( \@tree )
+      };
+   
+   }
+  
+sub _nested_interp_closure
    {
    my ( $tree, $opts ) = @_;
    
@@ -205,44 +238,18 @@ sub _interp_closure
       for my $node ( @{ $tree->[-1] } )
          {
             
-         if ( ref $node eq 'HASH' )
+         for my $y_pos ( 'y_dn', 'y_up' )
             {
             
-            for my $y_pos ( 'y_dn', 'y_up' )
-               {
-               
-               next if ! ref $node->{$y_pos};
-               
-               my ($x_dn, $x_up, $y_dn, $y_up) =
-                  $node->{$y_pos}->_neighbors($x_given, $opts);
-               
-               return _nada() if ! defined $x_dn;
+            next if ! ref $node->{$y_pos};
             
-               $make_closure = ref $y_dn || ref $y_up;
-                  
-               push @slice,
-                  {
-                  x_given => $x_given,
-                  x_dn    => $x_dn,
-                  y_dn    => $y_dn,
-                  x_up    => $x_up,
-                  y_up    => $y_up,
-                  into    => \$node->{$y_pos},
-                  };
-
-               }
-
-            }
-         else
-            {
-               
-            pop @{ $tree };
-
             my ($x_dn, $x_up, $y_dn, $y_up) =
-               $node->_neighbors($x_given, $opts);
+               $node->{$y_pos}->_neighbors($x_given, $opts);
             
             return _nada() if ! defined $x_dn;
-
+         
+            $make_closure = ref $y_dn || ref $y_up;
+               
             push @slice,
                {
                x_given => $x_given,
@@ -250,9 +257,8 @@ sub _interp_closure
                y_dn    => $y_dn,
                x_up    => $x_up,
                y_up    => $y_up,
+               into    => \$node->{$y_pos},
                };
-
-            $make_closure = ref $y_dn || ref $y_up;
 
             }
 
@@ -260,7 +266,7 @@ sub _interp_closure
          
       push @{ $tree }, \@slice;
       
-      return $make_closure ? _interp_closure( $tree, $opts )
+      return $make_closure ? _nested_interp_closure( $tree, $opts )
                            : _reduce_tree( $tree )
       
       };
