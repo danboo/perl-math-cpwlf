@@ -213,7 +213,8 @@ sub _interp_closure
                
                next if ! ref $node->{$y_pos};
                
-               my ($x_dn, $x_up, $y_dn, $y_up) = $node->{$y_pos}->_neighbors($x_given, $opts);
+               my ($x_dn, $x_up, $y_dn, $y_up) =
+                  $node->{$y_pos}->_neighbors($x_given, $opts);
                
                return _nada() if ! defined $x_dn;
             
@@ -237,7 +238,8 @@ sub _interp_closure
                
             pop @{ $tree };
 
-            my ($x_dn, $x_up, $y_dn, $y_up) = $node->_neighbors($x_given, $opts);
+            my ($x_dn, $x_up, $y_dn, $y_up) =
+               $node->_neighbors($x_given, $opts);
             
             return _nada() if ! defined $x_dn;
 
@@ -266,15 +268,13 @@ sub _interp_closure
    return $interp;   
    }
 
-## converts the final stack of curried line segments and x values to the final
+## converts the final tree of curried line segments and x values to the final
 ## y value
 sub _reduce_tree
    {
-   my ($stack) = @_;
+   my ($tree) = @_;
 
-   my $interp_y;
-   
-   for my $slice ( reverse @{ $stack } )
+   for my $slice ( reverse @{ $tree } )
       {
          
       for my $node ( @{ $slice } )
@@ -284,20 +284,16 @@ sub _reduce_tree
          
          my $y_given = _mx_plus_b( $node->{'x_given'}, @line );
          
-         $interp_y = $y_given;
-         
-         if ( $node->{'into'} )
-            {
-            my $parent_node = $node->{'into'}[0];
-            my $neighbor    = $node->{'into'}[1];
-            $parent_node->{ $neighbor } = $y_given;
-            }
+         return $y_given if ! $node->{'into'};
+
+         my $parent_node = $node->{'into'}[0];
+         my $neighbor    = $node->{'into'}[1];
+         $parent_node->{ $neighbor } = $y_given;
 
          }
 
       }
       
-   return $interp_y;
    }
 
 ## used to handle 'undef' oob exceptions
