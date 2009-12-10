@@ -191,7 +191,7 @@ sub knot
   
 sub _interp_closure
    {
-   my ( $stack, $opts ) = @_;
+   my ( $tree, $opts ) = @_;
    
    my $interp = sub
       {
@@ -202,7 +202,7 @@ sub _interp_closure
       my @slice;
       my $make_closure;
       
-      for my $node ( @{ $stack->[-1] } )
+      for my $node ( @{ $tree->[-1] } )
          {
             
          if ( ref $node eq 'HASH' )
@@ -235,7 +235,7 @@ sub _interp_closure
          else
             {
                
-            pop @{ $stack };
+            pop @{ $tree };
 
             my ($x_dn, $x_up, $y_dn, $y_up) = $node->_neighbors($x_given, $opts);
             
@@ -256,10 +256,10 @@ sub _interp_closure
 
          }
          
-      push @{ $stack }, \@slice;
+      push @{ $tree }, \@slice;
       
-      return $make_closure ? _interp_closure( $stack, $opts )
-                           : _reduce_tree( $stack )
+      return $make_closure ? _interp_closure( $tree, $opts )
+                           : _reduce_tree( $tree )
       
       };
 
