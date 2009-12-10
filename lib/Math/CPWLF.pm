@@ -227,7 +227,7 @@ sub _interp_closure
                   y_dn    => $y_dn,
                   x_up    => $x_up,
                   y_up    => $y_up,
-                  into    => [ $node, $y_pos ],
+                  into    => \$node->{$y_pos},
                   };
 
                }
@@ -286,9 +286,7 @@ sub _reduce_tree
          
          return $y_given if ! $node->{'into'};
 
-         my $parent_node = $node->{'into'}[0];
-         my $neighbor    = $node->{'into'}[1];
-         $parent_node->{ $neighbor } = $y_given;
+         ${ $node->{'into'} } = $y_given;
 
          }
 
