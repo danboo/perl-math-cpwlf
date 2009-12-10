@@ -1,5 +1,13 @@
 Revision history for Math-CPWLF
 
+0.13    Wed Dec  9 23:53:25 2009
+        - add example of setting non-default oob behavior
+        - refactored various pieces of code for clarity and speed
+        - added some internal commenting
+        - added tests covering identity function from -100 .. 100 with lookups
+          at 0.5 intervals
+        - increased Devel::Cover coverage
+
 0.12    Sun Dec  6 11:19:12 2009
         - give doc example on setting oob behavior
         - optimize direct hits of x values to avoid the binary search
