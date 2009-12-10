@@ -13,7 +13,15 @@ my $builder = Module::Build->new(
         'List::Util' => 0,
     },
     add_to_cleanup      => [ 'Math-CPWLF-*' ],
-    create_makefile_pl => 'traditional',
+    create_makefile_pl  => 'traditional',
+    meta_merge          =>
+       {
+       resources =>
+          {
+          homepage    => 'http://search.cpan.org/perldoc?Math::CPWLF',
+          repository  => 'http://github.com/danboo/perl-math-cpwlf/'
+          }
+       },
 );
 
 $builder->create_build_script();
