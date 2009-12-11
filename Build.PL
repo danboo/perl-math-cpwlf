@@ -18,8 +18,7 @@ my $builder = Module::Build->new(
        {
        resources =>
           {
-          homepage    => 'http://search.cpan.org/perldoc?Math::CPWLF',
-          repository  => 'http://github.com/danboo/perl-math-cpwlf/'
+          repository  => 'http://github.com/danboo/perl-math-cpwlf/',
           }
        },
 );
