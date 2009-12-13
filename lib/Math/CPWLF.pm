@@ -199,25 +199,16 @@ sub _top_interp_closure
 
       $x_given += 0;
 
-      my ($x_dn, $x_up, $y_dn, $y_up) =
-         $func->_neighbors($x_given, $opts);
+      my $node = $func->_make_node($x_given, $opts);
       
-      return _nada() if ! defined $x_dn;
-
-      my $node =
-         {
-         x_given => $x_given,
-         x_dn    => $x_dn,
-         y_dn    => $y_dn,
-         x_up    => $x_up,
-         y_up    => $y_up,
-         };
+      return _nada() if ! defined $node;
 
       my @slice = ( $node );
       my @tree  = ( \@slice );
 
-      return ref $y_dn || ref $y_up ? _nested_interp_closure( \@tree, $opts )
-                                    : _reduce_tree( \@tree )
+      return ref $node->{y_dn} || ref $node->{y_up}
+           ? _nested_interp_closure( \@tree, $opts )
+           : _reduce_tree( \@tree )
       };
    
    }
@@ -243,22 +234,15 @@ sub _nested_interp_closure
             
             next if ! ref $node->{$y_pos};
             
-            my ($x_dn, $x_up, $y_dn, $y_up) =
-               $node->{$y_pos}->_neighbors($x_given, $opts);
+            my $new_node = $node->{$y_pos}->_make_node($x_given, $opts);
             
-            return _nada() if ! defined $x_dn;
+            return _nada() if ! defined $new_node;
          
-            $make_closure = ref $y_dn || ref $y_up;
+            $make_closure = ref $new_node->{y_dn} || ref $new_node->{y_up};
+            
+            $new_node->{into} = \$node->{$y_pos};
                
-            push @slice,
-               {
-               x_given => $x_given,
-               x_dn    => $x_dn,
-               y_dn    => $y_dn,
-               x_up    => $x_up,
-               y_up    => $y_up,
-               into    => \$node->{$y_pos},
-               };
+            push @slice, $new_node;
 
             }
 
@@ -343,7 +327,7 @@ sub _merge_opts
 ## - handles oob exceptions
 ## - handles direct hits
 ## - handles empty functions
-sub _neighbors
+sub _make_node
    {
    my ($self, $key, $opts) = @_;
   
@@ -425,7 +409,14 @@ sub _neighbors
    my $y_dn = $self->{'_data'}{$x_dn};
    my $y_up = $self->{'_data'}{$x_up};
    
-   return $x_dn, $x_up, $y_dn, $y_up;
+   return
+      {
+      x_given => $key,
+      x_dn    => $x_dn,
+      x_up    => $x_up,
+      y_dn    => $y_dn,
+      y_up    => $y_up,
+      };
    }
 
 ## converts a given x value and two points that define a line
