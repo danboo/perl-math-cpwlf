@@ -136,7 +136,7 @@ sub knot
   {
   my $self = shift @_;
   
-  delete $self->{'_x_vals_order'};
+  delete $self->{_x_vals_order};
 
   ## caller intends to use hash-like multi-dimensional syntax
   ## $f->knot->(1)(2)( 3 => 4 );
@@ -152,15 +152,15 @@ sub knot
      {
      my $x = shift;
 
-     if ( ! defined $self->{'_data'}{$x} ||
-          ! ref $self->{'_data'}{$x} )
+     if ( ! defined $self->{_data}{$x} ||
+          ! ref $self->{_data}{$x} )
         {
-        $self->{'_data'}{$x} = ( ref $self )->new;
+        $self->{_data}{$x} = ( ref $self )->new;
         }
 
      return sub
         {
-        $self->{'_data'}{$x}->knot( @_ );
+        $self->{_data}{$x}->knot( @_ );
         };
      }
   ## args are an x,y pair
@@ -168,7 +168,7 @@ sub knot
      {
      my ( $x, $y ) = @_;
      $x += 0;
-     $self->{'_data'}{$x} = $y;
+     $self->{_data}{$x} = $y;
      }
   ## caller is using bulk multi-dimensional syntax
   ## $f->knot( 1, 2, 3 => 4 );
@@ -178,12 +178,12 @@ sub knot
      
      $x += 0;
      
-     if ( ! defined $self->{'_data'}{$x} || ! ref $self->{'_data'}{$x} )
+     if ( ! defined $self->{_data}{$x} || ! ref $self->{_data}{$x} )
         {
-        $self->{'_data'}{$x} = ( ref $self )->new;
+        $self->{_data}{$x} = ( ref $self )->new;
         }
         
-     $self->{'_data'}{$x}->knot(@_);
+     $self->{_data}{$x}->knot(@_);
      
      }
 
@@ -277,11 +277,11 @@ sub _reduce_tree
 
          my @line = grep defined, @{ $node }{ qw/ x_dn x_up y_dn y_up / };
          
-         my $y_given = _mx_plus_b( $node->{'x_given'}, @line );
+         my $y_given = _mx_plus_b( $node->{x_given}, @line );
          
-         return $y_given if ! $node->{'into'};
+         return $y_given if ! $node->{into};
 
-         ${ $node->{'into'} } = $y_given;
+         ${ $node->{into} } = $y_given;
 
          }
 
@@ -336,31 +336,31 @@ sub _make_node
    {
    my ($self, $x, $opts) = @_;
   
-   if ( ! exists $self->{'_x_vals_order'} )
+   if ( ! exists $self->{_x_vals_order} )
       {
       $self->_order_x_vals;
       $self->_index_x_vals;
       }
      
-   if ( ! @{ $self->{'_x_vals_order'} } )
+   if ( ! @{ $self->{_x_vals_order} } )
       {
       die "Error: cannot interpolate with no knots";
       }
 
    my ( $x_dn_i, $x_up_i, $oob );
       
-   if ( exists $self->{'_x_vals_index'}{$x} )
+   if ( exists $self->{_x_vals_index}{$x} )
       {
-      $x_dn_i     = $self->{'_x_vals_index'}{$x};
+      $x_dn_i     = $self->{_x_vals_index}{$x};
       $x_up_i     = $x_dn_i;
       }
-   elsif ( $x < $self->{'_x_vals_order'}[0] )
+   elsif ( $x < $self->{_x_vals_order}[0] )
       {
       $x_dn_i = 0;
       $x_up_i = 0;
       $oob    = 1;
       }
-   elsif ( $x > $self->{'_x_vals_order'}[-1] )
+   elsif ( $x > $self->{_x_vals_order}[-1] )
       {
       $x_dn_i = -1;
       $x_up_i = -1;
@@ -371,8 +371,8 @@ sub _make_node
       ( $x_dn_i, $x_up_i ) = do
          {
          my $min = 0;
-         my $max = $#{ $self->{'_x_vals_order'} };
-         _binary_search( $self->{'_x_vals_order'}, $x, $min, $max );
+         my $max = $#{ $self->{_x_vals_order} };
+         _binary_search( $self->{_x_vals_order}, $x, $min, $max );
          };
       }
    
@@ -408,11 +408,11 @@ sub _make_node
          }
       }
 
-   my $x_dn = $self->{'_x_vals_order'}[ $x_dn_i ];
-   my $x_up = $self->{'_x_vals_order'}[ $x_up_i ];
+   my $x_dn = $self->{_x_vals_order}[ $x_dn_i ];
+   my $x_up = $self->{_x_vals_order}[ $x_up_i ];
 
-   my $y_dn = $self->{'_data'}{$x_dn};
-   my $y_up = $self->{'_data'}{$x_up};
+   my $y_dn = $self->{_data}{$x_dn};
+   my $y_up = $self->{_data}{$x_up};
    
    return
       {
@@ -489,9 +489,9 @@ sub _order_x_vals
    {
    my ( $self ) = @_;
    
-   my @ordered_x_vals = sort { $a <=> $b } keys %{ $self->{'_data'} };
+   my @ordered_x_vals = sort { $a <=> $b } keys %{ $self->{_data} };
    
-   $self->{'_x_vals_order'} = \@ordered_x_vals;
+   $self->{_x_vals_order} = \@ordered_x_vals;
    }
 
 ## - called on the first lookup after a knot has been set   
@@ -500,10 +500,10 @@ sub _index_x_vals
    {
    my ( $self ) = @_;
 
-   delete $self->{'_x_vals_index'};
-   for my $i ( 0 .. $#{ $self->{'_x_vals_order'} } )
+   delete $self->{_x_vals_index};
+   for my $i ( 0 .. $#{ $self->{_x_vals_order} } )
       {
-      $self->{'_x_vals_index'}{ $self->{'_x_vals_order'}[$i] } = $i;
+      $self->{_x_vals_index}{ $self->{_x_vals_order}[$i] } = $i;
       }
    }
 
