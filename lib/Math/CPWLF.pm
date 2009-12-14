@@ -136,7 +136,7 @@ sub knot
   {
   my $self = shift @_;
   
-  delete $self->{'_x_vals_ordered'};
+  delete $self->{'_x_vals_order'};
 
   ## caller intends to use hash-like multi-dimensional syntax
   ## $f->knot->(1)(2)( 3 => 4 );
@@ -336,13 +336,13 @@ sub _make_node
    {
    my ($self, $x, $opts) = @_;
   
-   if ( ! exists $self->{'_x_vals_ordered'} )
+   if ( ! exists $self->{'_x_vals_order'} )
       {
       $self->_order_x_vals;
       $self->_index_x_vals;
       }
      
-   if ( ! @{ $self->{'_x_vals_ordered'} } )
+   if ( ! @{ $self->{'_x_vals_order'} } )
       {
       die "Error: cannot interpolate with no knots";
       }
@@ -354,13 +354,13 @@ sub _make_node
       $x_dn_i     = $self->{'_x_vals_index'}{$x};
       $x_up_i     = $x_dn_i;
       }
-   elsif ( $x < $self->{'_x_vals_ordered'}[0] )
+   elsif ( $x < $self->{'_x_vals_order'}[0] )
       {
       $x_dn_i = 0;
       $x_up_i = 0;
       $oob    = 1;
       }
-   elsif ( $x > $self->{'_x_vals_ordered'}[-1] )
+   elsif ( $x > $self->{'_x_vals_order'}[-1] )
       {
       $x_dn_i = -1;
       $x_up_i = -1;
@@ -371,8 +371,8 @@ sub _make_node
       ( $x_dn_i, $x_up_i ) = do
          {
          my $min = 0;
-         my $max = $#{ $self->{'_x_vals_ordered'} };
-         _binary_search( $self->{'_x_vals_ordered'}, $x, $min, $max );
+         my $max = $#{ $self->{'_x_vals_order'} };
+         _binary_search( $self->{'_x_vals_order'}, $x, $min, $max );
          };
       }
    
@@ -386,11 +386,11 @@ sub _make_node
          }
       elsif ( $merge_opts->{oob} eq 'extrapolate' )
          {
-         if ( $x < $self->{_x_vals_ordered}[0] )
+         if ( $x < $self->{_x_vals_order}[0] )
             {
-            $x_up_i = List::Util::min( $#{ $self->{_x_vals_ordered} }, $x_up_i + 1 );
+            $x_up_i = List::Util::min( $#{ $self->{_x_vals_order} }, $x_up_i + 1 );
             }
-         elsif ( $x > $self->{_x_vals_ordered}[-1] )
+         elsif ( $x > $self->{_x_vals_order}[-1] )
             {
             $x_dn_i = List::Util::max( 0, $x_dn_i - 1 );
             }
@@ -408,8 +408,8 @@ sub _make_node
          }
       }
 
-   my $x_dn = $self->{'_x_vals_ordered'}[ $x_dn_i ];
-   my $x_up = $self->{'_x_vals_ordered'}[ $x_up_i ];
+   my $x_dn = $self->{'_x_vals_order'}[ $x_dn_i ];
+   my $x_up = $self->{'_x_vals_order'}[ $x_up_i ];
 
    my $y_dn = $self->{'_data'}{$x_dn};
    my $y_up = $self->{'_data'}{$x_up};
@@ -491,7 +491,7 @@ sub _order_x_vals
    
    my @ordered_x_vals = sort { $a <=> $b } keys %{ $self->{'_data'} };
    
-   $self->{'_x_vals_ordered'} = \@ordered_x_vals;
+   $self->{'_x_vals_order'} = \@ordered_x_vals;
    }
 
 ## - called on the first lookup after a knot has been set   
@@ -501,9 +501,9 @@ sub _index_x_vals
    my ( $self ) = @_;
 
    delete $self->{'_x_vals_index'};
-   for my $i ( 0 .. $#{ $self->{'_x_vals_ordered'} } )
+   for my $i ( 0 .. $#{ $self->{'_x_vals_order'} } )
       {
-      $self->{'_x_vals_index'}{ $self->{'_x_vals_ordered'}[$i] } = $i;
+      $self->{'_x_vals_index'}{ $self->{'_x_vals_order'}[$i] } = $i;
       }
    }
 
