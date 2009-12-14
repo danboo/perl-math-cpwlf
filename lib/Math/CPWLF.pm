@@ -78,10 +78,10 @@ Optional parameters:
 
 =item * oob
 
-Controls how a function behaves when a given x value is out of bounds of the
-current minimum and maximum knots. If a function defines an C<oob> method in
-its constructor, that method is also used for any nested functions that were
-not explicitly constructed with their own C<oob> methods.
+The C<oob> parameter controls how a function behaves when a given x value is out
+of bounds of the current minimum and maximum knots. If a function defines an
+C<oob> method in its constructor, that method is also used for any nested
+functions that were not explicitly constructed with their own C<oob> methods.
 
 =over 4
 
@@ -136,6 +136,8 @@ sub knot
   {
   my $self = shift @_;
   
+  delete $self->{'_x_vals_ordered'};
+
   ## caller intends to use hash-like multi-dimensional syntax
   ## $f->knot->(1)(2)( 3 => 4 );
   if ( @_ == 0 )
@@ -148,47 +150,48 @@ sub knot
   ## caller is in the middle of using hash-like multi-dimensional syntax
   elsif ( @_ == 1 )
      {
-     my $key = shift;
+     my $x = shift;
 
-     if ( ! defined $self->{'_data'}{$key} || ! ref $self->{'_data'}{$key} )
+     if ( ! defined $self->{'_data'}{$x} ||
+          ! ref $self->{'_data'}{$x} )
         {
-        $self->{'_data'}{$key} = ( ref $self )->new;
+        $self->{'_data'}{$x} = ( ref $self )->new;
         }
 
      return sub
         {
-        $self->{'_data'}{$key}->knot( @_ );
+        $self->{'_data'}{$x}->knot( @_ );
         };
      }
   ## args are an x,y pair
   elsif ( @_ == 2 )
      {
-     my ( $key, $val ) = @_;
-     $key += 0;
-     $self->{'_data'}{$key} = $val;
+     my ( $x, $y ) = @_;
+     $x += 0;
+     $self->{'_data'}{$x} = $y;
      }
   ## caller is using bulk multi-dimensional syntax
   ## $f->knot( 1, 2, 3 => 4 );
   elsif ( @_ > 2 )
      {
-     my $key = shift;
+     my $x = shift;
      
-     $key += 0;
+     $x += 0;
      
-     if ( ! defined $self->{'_data'}{$key} || ! ref $self->{'_data'}{$key} )
+     if ( ! defined $self->{'_data'}{$x} || ! ref $self->{'_data'}{$x} )
         {
-        $self->{'_data'}{$key} = ( ref $self )->new;
+        $self->{'_data'}{$x} = ( ref $self )->new;
         }
         
-     $self->{'_data'}{$key}->knot(@_)
+     $self->{'_data'}{$x}->knot(@_);
      
      }
 
-  delete $self->{'_keys'};
-
   return $self;
   }
-  
+
+## - solves the first dimension lookup, or
+## - returns first dimension closure as needed  
 sub _top_interp_closure
    {
    my ( $func, $opts ) = @_;
@@ -212,7 +215,9 @@ sub _top_interp_closure
       };
    
    }
-  
+
+## - solves the 2+ dimension lookups, or
+## - returns 2+ dimension closures as needed
 sub _nested_interp_closure
    {
    my ( $tree, $opts ) = @_;
@@ -329,33 +334,33 @@ sub _merge_opts
 ## - handles empty functions
 sub _make_node
    {
-   my ($self, $key, $opts) = @_;
+   my ($self, $x, $opts) = @_;
   
-   if ( ! exists $self->{'_keys'} )
+   if ( ! exists $self->{'_x_vals_ordered'} )
       {
-      $self->_order_keys;
-      $self->_index_keys;
+      $self->_order_x_vals;
+      $self->_index_x_vals;
       }
      
-   if ( ! @{ $self->{'_keys'} } )
+   if ( ! @{ $self->{'_x_vals_ordered'} } )
       {
       die "Error: cannot interpolate with no knots";
       }
 
    my ( $x_dn_i, $x_up_i, $oob );
       
-   if ( exists $self->{'_index'}{$key} )
+   if ( exists $self->{'_x_vals_index'}{$x} )
       {
-      $x_dn_i     = $self->{'_index'}{$key};
+      $x_dn_i     = $self->{'_x_vals_index'}{$x};
       $x_up_i     = $x_dn_i;
       }
-   elsif ( $key < $self->{'_keys'}[0] )
+   elsif ( $x < $self->{'_x_vals_ordered'}[0] )
       {
       $x_dn_i = 0;
       $x_up_i = 0;
       $oob    = 1;
       }
-   elsif ( $key > $self->{'_keys'}[-1] )
+   elsif ( $x > $self->{'_x_vals_ordered'}[-1] )
       {
       $x_dn_i = -1;
       $x_up_i = -1;
@@ -366,8 +371,8 @@ sub _make_node
       ( $x_dn_i, $x_up_i ) = do
          {
          my $min = 0;
-         my $max = $#{ $self->{'_keys'} };
-         _binary_search( $self->{'_keys'}, $key, $min, $max );
+         my $max = $#{ $self->{'_x_vals_ordered'} };
+         _binary_search( $self->{'_x_vals_ordered'}, $x, $min, $max );
          };
       }
    
@@ -376,16 +381,16 @@ sub _make_node
       my $merge_opts = $self->_merge_opts( $opts );
       if ( $merge_opts->{oob} eq 'die' )
          {
-         Carp::confess "Error: given X ($key) was out of bounds of"
+         Carp::confess "Error: given X ($x) was out of bounds of"
             . " function min or max";
          }
       elsif ( $merge_opts->{oob} eq 'extrapolate' )
          {
-         if ( $key < $self->{_keys}[0] )
+         if ( $x < $self->{_x_vals_ordered}[0] )
             {
-            $x_up_i = List::Util::min( $#{ $self->{_keys} }, $x_up_i + 1 );
+            $x_up_i = List::Util::min( $#{ $self->{_x_vals_ordered} }, $x_up_i + 1 );
             }
-         elsif ( $key > $self->{_keys}[-1] )
+         elsif ( $x > $self->{_x_vals_ordered}[-1] )
             {
             $x_dn_i = List::Util::max( 0, $x_dn_i - 1 );
             }
@@ -403,15 +408,15 @@ sub _make_node
          }
       }
 
-   my $x_dn = $self->{'_keys'}[ $x_dn_i ];
-   my $x_up = $self->{'_keys'}[ $x_up_i ];
+   my $x_dn = $self->{'_x_vals_ordered'}[ $x_dn_i ];
+   my $x_up = $self->{'_x_vals_ordered'}[ $x_up_i ];
 
    my $y_dn = $self->{'_data'}{$x_dn};
    my $y_up = $self->{'_data'}{$x_up};
    
    return
       {
-      x_given => $key,
+      x_given => $x,
       x_dn    => $x_dn,
       x_up    => $x_up,
       y_dn    => $y_dn,
@@ -480,25 +485,25 @@ sub _binary_search
    
 ## - called on the first lookup after a knot has been set   
 ## - caches an array of ordered x values
-sub _order_keys
+sub _order_x_vals
    {
    my ( $self ) = @_;
    
-   my @ordered_keys = sort { $a <=> $b } keys %{ $self->{'_data'} };
+   my @ordered_x_vals = sort { $a <=> $b } keys %{ $self->{'_data'} };
    
-   $self->{'_keys'} = \@ordered_keys;
+   $self->{'_x_vals_ordered'} = \@ordered_x_vals;
    }
 
 ## - called on the first lookup after a knot has been set   
 ## - creates an index mapping knot x values to their ordered indexes
-sub _index_keys
+sub _index_x_vals
    {
    my ( $self ) = @_;
 
-   delete $self->{'_index'};
-   for my $i ( 0 .. $#{ $self->{'_keys'} } )
+   delete $self->{'_x_vals_index'};
+   for my $i ( 0 .. $#{ $self->{'_x_vals_ordered'} } )
       {
-      $self->{'_index'}{ $self->{'_keys'}[$i] } = $i;
+      $self->{'_x_vals_index'}{ $self->{'_x_vals_ordered'}[$i] } = $i;
       }
    }
 
