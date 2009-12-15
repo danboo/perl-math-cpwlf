@@ -1,5 +1,11 @@
 Revision history for Math-CPWLF
 
+0.14    Mon Dec 14 22:19:14 2009
+        - moderate speed improvement by changing _binary_search from recursive
+          to iterative
+        - added 'repository' to Build.PL
+        - many internal code changes for consistent style, commenting and naming
+
 0.13    Wed Dec  9 23:53:25 2009
         - add example of setting non-default oob behavior
         - refactored various pieces of code for clarity and speed
