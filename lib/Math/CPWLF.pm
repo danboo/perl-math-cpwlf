@@ -450,36 +450,30 @@ sub _binary_search
    
    my $array_size = $max_index - $min_index + 1;
    
-   if ( $array_size > 2 )
+   while ( $array_size > 2 )
       {
 
-      ##                                                        size:  3 20
-      my $mid_index  = $min_index + int( ( $array_size - 1 ) / 2 ); #  1  9
+      ##                                                        size:  3 4 5 20
+      my $mid_index  = $min_index + int( ( $array_size - 1 ) / 2 ); #  1 2   9
       
-      ## value is inside the lower half      
+      ## value is inside the lower half
       if ( $value <= $array->[$mid_index] )
          {
-         $_[3] = $mid_index;
+         $max_index = $mid_index;
          }
       ## value is inside the upper half
       else
          {
-         $_[2] = $mid_index;
+         $min_index = $mid_index;
          }
 
-      goto &_binary_search;
+      $array_size = $max_index - $min_index + 1;
 
       }
-   elsif ( $array_size > 0 )
-      {
 
-      return( $min_index, $max_index );
-
-      }
-   else
-      {
-      return( undef, undef );
-      }
+   return $array_size > 0
+        ? ( $min_index, $max_index )
+        : ( undef, undef );
 
    }
    
