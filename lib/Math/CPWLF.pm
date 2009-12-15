@@ -351,8 +351,8 @@ sub _make_node
       
    if ( exists $self->{_x_vals_index}{$x} )
       {
-      $x_dn_i     = $self->{_x_vals_index}{$x};
-      $x_up_i     = $x_dn_i;
+      $x_dn_i = $self->{_x_vals_index}{$x};
+      $x_up_i = $x_dn_i;
       }
    elsif ( $x < $self->{_x_vals_order}[0] )
       {
@@ -448,30 +448,31 @@ sub _binary_search
    {
    my ( $array, $value, $min_index, $max_index ) = @_;
    
-   my $array_size = $max_index - $min_index + 1;
+   my $range_max_index = $max_index - $min_index;
    
-   while ( $array_size > 2 )
+   while ( $range_max_index > 1 )
       {
 
-      ##                                                        size:  3 4 5 20
-      my $mid_index  = $min_index + int( ( $array_size - 1 ) / 2 ); #  1 2   9
+      ## size:  3 4 5 6 7 8 9 10 20
+      ##  mid:  1 2 2 3 3 4 4  5 10
+      my $mid_index  = $min_index + int( $range_max_index / 2 );
       
-      ## value is inside the lower half
-      if ( $value <= $array->[$mid_index] )
-         {
-         $max_index = $mid_index;
-         }
       ## value is inside the upper half
-      else
+      if ( $value > $array->[$mid_index] )
          {
          $min_index = $mid_index;
          }
+      ## value is inside the lower half
+      else
+         {
+         $max_index = $mid_index;
+         }
 
-      $array_size = $max_index - $min_index + 1;
+      $range_max_index = $max_index - $min_index;
 
       }
 
-   return $array_size > 0
+   return $range_max_index > -1
         ? ( $min_index, $max_index )
         : ( undef, undef );
 
