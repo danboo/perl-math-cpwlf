@@ -1,5 +1,9 @@
 Revision history for Math-CPWLF
 
+0.15    Sat Jan 16 16:44:29 2010
+        - make Build.PL non-executable
+        - minor internal clean up of binary search function
+
 0.14    Mon Dec 14 22:19:14 2009
         - moderate speed improvement by changing _binary_search from recursive
           to iterative
